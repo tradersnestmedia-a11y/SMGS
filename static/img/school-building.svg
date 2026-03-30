@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="School building background">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8bd3ff"/>
+      <stop offset="55%" stop-color="#d8f0ff"/>
+      <stop offset="100%" stop-color="#eef8ff"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7bc85f"/>
+      <stop offset="100%" stop-color="#4b9f43"/>
+    </linearGradient>
+    <linearGradient id="building" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8e8c6"/>
+      <stop offset="100%" stop-color="#e4c892"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#95503a"/>
+      <stop offset="100%" stop-color="#6d2f23"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#d8f5ff"/>
+      <stop offset="100%" stop-color="#93d3f2"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#193129" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1260" cy="180" r="64" fill="#fff8c6" opacity="0.9"/>
+  <g opacity="0.65" fill="#ffffff">
+    <ellipse cx="320" cy="130" rx="110" ry="34"/>
+    <ellipse cx="410" cy="125" rx="70" ry="24"/>
+    <ellipse cx="1000" cy="120" rx="130" ry="36"/>
+    <ellipse cx="1100" cy="118" rx="78" ry="24"/>
+  </g>
+
+  <path d="M0 650 Q250 610 500 645 T1020 640 T1600 650 V900 H0 Z" fill="#78c86c"/>
+  <path d="M0 715 Q320 675 620 720 T1230 705 T1600 720 V900 H0 Z" fill="url(#grass)"/>
+
+  <g opacity="0.28">
+    <rect x="0" y="716" width="1600" height="24" fill="#ffffff"/>
+    <rect x="0" y="774" width="1600" height="16" fill="#ffffff"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="360" y="250" width="880" height="390" rx="12" fill="url(#building)"/>
+    <polygon points="320,280 800,150 1280,280 1280,322 320,322" fill="url(#roof)"/>
+    <rect x="760" y="430" width="130" height="210" rx="8" fill="#74422c"/>
+    <rect x="782" y="450" width="36" height="190" fill="#8c583d"/>
+    <circle cx="862" cy="535" r="7" fill="#d7c38a"/>
+
+    <g fill="url(#glass)" stroke="#5d8ca8" stroke-width="4">
+      <rect x="430" y="355" width="92" height="92" rx="6"/>
+      <rect x="560" y="355" width="92" height="92" rx="6"/>
+      <rect x="690" y="355" width="92" height="92" rx="6"/>
+      <rect x="920" y="355" width="92" height="92" rx="6"/>
+      <rect x="1050" y="355" width="92" height="92" rx="6"/>
+      <rect x="430" y="490" width="92" height="92" rx="6"/>
+      <rect x="560" y="490" width="92" height="92" rx="6"/>
+      <rect x="690" y="490" width="92" height="92" rx="6"/>
+      <rect x="920" y="490" width="92" height="92" rx="6"/>
+      <rect x="1050" y="490" width="92" height="92" rx="6"/>
+    </g>
+
+    <g stroke="#5d8ca8" stroke-width="4">
+      <line x1="476" y1="355" x2="476" y2="447"/>
+      <line x1="430" y1="401" x2="522" y2="401"/>
+      <line x1="606" y1="355" x2="606" y2="447"/>
+      <line x1="560" y1="401" x2="652" y2="401"/>
+      <line x1="736" y1="355" x2="736" y2="447"/>
+      <line x1="690" y1="401" x2="782" y2="401"/>
+      <line x1="966" y1="355" x2="966" y2="447"/>
+      <line x1="920" y1="401" x2="1012" y2="401"/>
+      <line x1="1096" y1="355" x2="1096" y2="447"/>
+      <line x1="1050" y1="401" x2="1142" y2="401"/>
+      <line x1="476" y1="490" x2="476" y2="582"/>
+      <line x1="430" y1="536" x2="522" y2="536"/>
+      <line x1="606" y1="490" x2="606" y2="582"/>
+      <line x1="560" y1="536" x2="652" y2="536"/>
+      <line x1="736" y1="490" x2="736" y2="582"/>
+      <line x1="690" y1="536" x2="782" y2="536"/>
+      <line x1="966" y1="490" x2="966" y2="582"/>
+      <line x1="920" y1="536" x2="1012" y2="536"/>
+      <line x1="1096" y1="490" x2="1096" y2="582"/>
+      <line x1="1050" y1="536" x2="1142" y2="536"/>
+    </g>
+
+    <rect x="725" y="228" width="150" height="74" rx="10" fill="#ffffff" opacity="0.94"/>
+    <text x="800" y="276" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#2a5d2c">
+      SIM TECH
+    </text>
+  </g>
+
+  <rect x="735" y="640" width="180" height="30" fill="#c3cdd0" opacity="0.78"/>
+  <rect x="660" y="670" width="330" height="26" fill="#bcc6c8" opacity="0.76"/>
+  <path d="M710 900 L760 660 L805 660 L775 900 Z" fill="#a07a47" opacity="0.75"/>
+  <path d="M820 900 L850 660 L895 660 L885 900 Z" fill="#a07a47" opacity="0.75"/>
+
+  <g>
+    <rect x="175" y="540" width="22" height="125" fill="#745533"/>
+    <circle cx="186" cy="505" r="54" fill="#56a44b"/>
+    <circle cx="154" cy="525" r="36" fill="#69bc59"/>
+    <circle cx="214" cy="525" r="36" fill="#69bc59"/>
+  </g>
+
+  <g>
+    <rect x="1380" y="540" width="22" height="125" fill="#745533"/>
+    <circle cx="1391" cy="505" r="54" fill="#56a44b"/>
+    <circle cx="1360" cy="525" r="36" fill="#69bc59"/>
+    <circle cx="1418" cy="525" r="36" fill="#69bc59"/>
+  </g>
+
+  <g opacity="0.4">
+    <path d="M0 840 Q180 815 320 845 T660 838 T1040 848 T1600 832 V900 H0 Z" fill="#3a7f3b"/>
+  </g>
+</svg>

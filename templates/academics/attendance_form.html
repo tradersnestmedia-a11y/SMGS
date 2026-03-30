@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance | {{ school_name }}{% endblock %}
+{% block page_heading %}Mark Attendance{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Choose Class and Date</h4>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Class</label>
+                {{ form.school_class }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Date</label>
+                {{ form.date }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-brand w-100">Load Students</button>
+            </div>
+        </form>
+    </div>
+
+    {% if attendance_rows %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Total Students</span><strong id="attendance-total">{{ attendance_summary.total }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Present</span><strong id="attendance-present">{{ attendance_summary.present }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Absent</span><strong id="attendance-absent">{{ attendance_summary.absent }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Late / Excused</span><strong><span id="attendance-late">{{ attendance_summary.late }}</span> / <span id="attendance-excused">{{ attendance_summary.excused }}</span></strong></div></div>
+        </div>
+
+        <div class="content-card">
+            <div class="section-title-wrap align-items-start">
+                <div>
+                    <h4 class="section-title">{{ selected_class }} Attendance</h4>
+                    <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+                        <span class="status-pill">{{ selected_date }}</span>
+                        <span class="status-pill" id="autosave-indicator">
+                            {% if attendance_register %}
+                                Last saved {{ attendance_register.last_saved_at|date:"Y-m-d H:i" }} via {{ attendance_register.get_save_mode_display }}
+                            {% else %}
+                                Changes are not saved yet.
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'academics:attendance_export' %}?school_class={{ selected_class.pk }}&date={{ selected_date|date:'Y-m-d' }}" class="btn btn-outline-secondary rounded-pill">Download Current PDF</a>
+                </div>
+            </div>
+
+            <form method="post" id="attendance-form" data-autosave-url="{% url 'academics:attendance_autosave' %}">
+                {% csrf_token %}
+                <input type="hidden" name="school_class" value="{{ selected_class.pk }}">
+                <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr>
+                                <th>Admission No.</th>
+                                <th>Student</th>
+                                <th>Status</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in attendance_rows %}
+                                <tr>
+                                    <td>{{ row.student.admission_number }}</td>
+                                    <td>{{ row.student.full_name }}</td>
+                                    <td>
+                                        <select name="status_{{ row.student.id }}" class="form-select table-input attendance-status">
+                                            <option value="Present" {% if row.status == 'Present' %}selected{% endif %}>Present</option>
+                                            <option value="Absent" {% if row.status == 'Absent' %}selected{% endif %}>Absent</option>
+                                            <option value="Late" {% if row.status == 'Late' %}selected{% endif %}>Late</option>
+                                            <option value="Excused" {% if row.status == 'Excused' %}selected{% endif %}>Excused</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="note_{{ row.student.id }}" class="form-control attendance-note" value="{{ row.note }}" placeholder="Optional note">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="submit" name="action" value="manual_save" class="btn btn-brand">Save Attendance</button>
+                    <button type="submit" name="action" value="save_download" class="btn btn-outline-secondary rounded-pill">Save and Download PDF</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    {% if attendance_rows %}
+        <script>
+            (() => {
+                const form = document.getElementById("attendance-form");
+                const indicator = document.getElementById("autosave-indicator");
+                if (!form || !indicator) {
+                    return;
+                }
+
+                const summaryTargets = {
+                    total: document.getElementById("attendance-total"),
+                    present: document.getElementById("attendance-present"),
+                    absent: document.getElementById("attendance-absent"),
+                    late: document.getElementById("attendance-late"),
+                    excused: document.getElementById("attendance-excused"),
+                };
+                let autosaveTimer = null;
+
+                const updateSummary = (summary) => {
+                    Object.entries(summaryTargets).forEach(([key, element]) => {
+                        if (element && summary[key] !== undefined) {
+                            element.textContent = summary[key];
+                        }
+                    });
+                };
+
+                const runAutosave = () => {
+                    const payload = new FormData(form);
+                    indicator.textContent = "Saving attendance automatically...";
+                    fetch(form.dataset.autosaveUrl, {
+                        method: "POST",
+                        body: payload,
+                        headers: {"X-Requested-With": "XMLHttpRequest"},
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (!data.saved) {
+                                throw new Error("Autosave failed");
+                            }
+                            indicator.textContent = `Last saved ${data.saved_at} via ${data.save_mode}`;
+                            updateSummary(data.summary || {});
+                        })
+                        .catch(() => {
+                            indicator.textContent = "Autosave failed. Use Save Attendance to store changes.";
+                        });
+                };
+
+                form.querySelectorAll(".attendance-status, .attendance-note").forEach((input) => {
+                    const eventName = input.classList.contains("attendance-note") ? "input" : "change";
+                    input.addEventListener(eventName, () => {
+                        clearTimeout(autosaveTimer);
+                        autosaveTimer = setTimeout(runAutosave, 700);
+                    });
+                });
+            })();
+        </script>
+    {% endif %}
+{% endblock %}

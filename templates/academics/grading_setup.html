@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Grading Setup | {{ school_name }}{% endblock %}
+{% block page_heading %}Grading Setup{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-xl-4">
+            <div class="content-card h-100">
+                <div class="section-title-wrap">
+                    <h4 class="section-title">Examination Types</h4>
+                    <a href="{% url 'academics:exam_type_add' %}" class="btn btn-brand">Add Type</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>Name</th><th>Weight</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in exam_types %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.weight_percentage }}%</td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{% url 'academics:exam_type_edit' item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:exam_type_delete' item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-5">No examination types configured yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="content-card h-100">
+                <div class="section-title-wrap">
+                    <h4 class="section-title">Grade Rules</h4>
+                    <a href="{% url 'academics:grading_rule_add' %}" class="btn btn-brand">Add Rule</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>Grade</th><th>Range</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in grading_rules %}
+                                <tr>
+                                    <td>{{ item.grade_name }} - {{ item.remark }}</td>
+                                    <td>{{ item.min_score }} to {{ item.max_score }}</td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{% url 'academics:grading_rule_edit' item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:grading_rule_delete' item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-5">No grading rules configured yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="content-card h-100">
+                <div class="section-title-wrap">
+                    <h4 class="section-title">Subjects by Grade</h4>
+                    <a href="{% url 'academics:subject_grade_level_add' %}" class="btn btn-brand">Add Mapping</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>Subject</th><th>Grade</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in subject_grade_levels %}
+                                <tr>
+                                    <td>{{ item.subject.name }}{% if item.is_core %} <span class="text-muted small">(Core)</span>{% endif %}</td>
+                                    <td>Grade {{ item.grade_level }}</td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{% url 'academics:subject_grade_level_edit' item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:subject_grade_level_delete' item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-5">No subject mappings configured yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

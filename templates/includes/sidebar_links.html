@@ -1,0 +1,79 @@
+<nav class="nav flex-column sidebar-nav">
+    <a class="nav-link" href="{% url 'accounts:dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a class="nav-link" href="{% url 'accounts:profile' %}">
+        <i class="bi bi-person-gear"></i> Account Settings
+    </a>
+
+    {% if current_role == 'admin' or current_role == 'teacher' %}
+        <a class="nav-link" href="{% url 'students:list' %}">
+            <i class="bi bi-mortarboard"></i> Students
+        </a>
+        <a class="nav-link" href="{% url 'teachers:list' %}">
+            <i class="bi bi-person-badge"></i> Teachers
+        </a>
+        <a class="nav-link" href="{% url 'academics:class_list' %}">
+            <i class="bi bi-building"></i> Classes
+        </a>
+        <a class="nav-link" href="{% url 'academics:subject_list' %}">
+            <i class="bi bi-journal-bookmark"></i> Subjects
+        </a>
+        {% if current_role == 'admin' %}
+            <a class="nav-link" href="{% url 'academics:calendar' %}">
+                <i class="bi bi-calendar4-week"></i> Academic Calendar
+            </a>
+            <a class="nav-link" href="{% url 'academics:grading_setup' %}">
+                <i class="bi bi-sliders"></i> Grading Setup
+            </a>
+        {% endif %}
+        <a class="nav-link" href="{% url 'academics:assignment_list' %}">
+            <i class="bi bi-diagram-3"></i> Assignments
+        </a>
+        <a class="nav-link" href="{% url 'academics:attendance_mark' %}">
+            <i class="bi bi-calendar-check"></i> Attendance
+        </a>
+        <a class="nav-link" href="{% url 'academics:grade_upload' %}">
+            <i class="bi bi-clipboard-data"></i> Grade Upload
+        </a>
+    {% endif %}
+
+    <a class="nav-link" href="{% url 'academics:grade_list' %}">
+        <i class="bi bi-award"></i> Results
+    </a>
+
+    <a class="nav-link" href="{% url 'academics:note_list' %}">
+        <i class="bi bi-journal-richtext"></i> Notes
+    </a>
+
+    {% if current_role == 'student' and request.user.student_profile %}
+        <a class="nav-link" href="{% url 'students:detail' request.user.student_profile.pk %}">
+            <i class="bi bi-person-lines-fill"></i> My Profile
+        </a>
+    {% endif %}
+
+    {% if current_role == 'teacher' and request.user.teacher_profile %}
+        <a class="nav-link" href="{% url 'teachers:detail' request.user.teacher_profile.pk %}">
+            <i class="bi bi-person-lines-fill"></i> My Profile
+        </a>
+    {% endif %}
+
+    {% if current_role == 'admin' %}
+        <a class="nav-link" href="{% url 'accounts:registration_dashboard' %}">
+            <i class="bi bi-person-plus"></i> Registrations
+        </a>
+        <a class="nav-link" href="/admin/" target="_blank">
+            <i class="bi bi-shield-lock"></i> Django Admin
+        </a>
+    {% endif %}
+
+    {% if current_role == 'admin' or current_role == 'teacher' %}
+        <a class="nav-link" href="{% url 'academics:attendance_records' %}">
+            <i class="bi bi-card-checklist"></i> Attendance Records
+        </a>
+    {% endif %}
+
+    <a class="nav-link text-danger-emphasis" href="{% url 'accounts:logout' %}">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+</nav>

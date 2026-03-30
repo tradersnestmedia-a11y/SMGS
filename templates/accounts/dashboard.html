@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | {{ school_name }}{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+    <section class="hero-card mb-4">
+        <div>
+            <span class="eyebrow">School overview</span>
+            <h3 class="hero-card__title">Welcome to {{ school_name }}</h3>
+            <p class="hero-card__text mb-0">
+                {% if current_role == 'admin' %}
+                    Monitor student growth, teacher capacity, and class activity from a single control center.
+                {% elif current_role == 'teacher' %}
+                    Review your teaching assignments, attendance work, and uploaded grade records.
+                {% else %}
+                    Check your attendance summary and latest subject results from your student dashboard.
+                {% endif %}
+            </p>
+        </div>
+        <div class="hero-card__badge">
+            <i class="bi bi-bar-chart-line-fill"></i>
+        </div>
+    </section>
+
+    {% if current_role == 'admin' %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Students</span><strong>{{ student_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Teachers</span><strong>{{ teacher_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Classes</span><strong>{{ class_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Subjects</span><strong>{{ subject_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Learning Notes</span><strong>{{ note_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Attendance Records</span><strong>{{ attendance_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Grade Records</span><strong>{{ grade_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Pending Students</span><strong>{{ pending_student_registrations }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Pending Staff</span><strong>{{ pending_staff_registrations }}</strong></div></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-6">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Recent Grades</h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Student</th><th>Subject</th><th>Term</th><th>Total</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in recent_grades %}
+                                    <tr>
+                                        <td>{{ grade.student.full_name }}</td>
+                                        <td>{{ grade.subject.name }}</td>
+                                        <td>{{ grade.term }}</td>
+                                        <td>{{ grade.total_score|floatformat:2 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No grade records yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="content-card h-100 mb-4">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Registration Queue</h4>
+                        <a href="{% url 'accounts:registration_dashboard' %}" class="btn btn-brand">Open Queue</a>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-item"><span>Student Applications</span><strong>{{ pending_student_registrations }}</strong></div>
+                        <div class="profile-item"><span>Staff Applications</span><strong>{{ pending_staff_registrations }}</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Recent Attendance</h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Date</th><th>Student</th><th>Class</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in recent_attendance %}
+                                    <tr>
+                                        <td>{{ item.date }}</td>
+                                        <td>{{ item.student.full_name }}</td>
+                                        <td>{{ item.school_class }}</td>
+                                        <td><span class="status-pill">{{ item.status }}</span></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No attendance records yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Latest Notes</h4>
+                        <a href="{% url 'academics:note_list' %}" class="btn btn-brand">Open Notes</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Title</th><th>Class</th><th>Subject</th><th>Uploaded</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for note in recent_notes %}
+                                    <tr>
+                                        <td>{{ note.title }}</td>
+                                        <td>{{ note.school_class }}</td>
+                                        <td>{{ note.subject.name|default:"General" }}</td>
+                                        <td>{{ note.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No notes uploaded yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif current_role == 'teacher' %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Assignments</span><strong>{{ assignment_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Uploaded Grades</span><strong>{{ grade_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Attendance Actions</span><strong>{{ attendance_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Published Notes</span><strong>{{ note_count }}</strong></div></div>
+        </div>
+        <div class="row g-4">
+            <div class="col-xl-7">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Your Teaching Assignments</h4>
+                        <a href="{% url 'academics:grade_upload' %}" class="btn btn-brand">Upload Grades</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Class</th><th>Subject</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                    <tr>
+                                        <td>{{ assignment.school_class }}</td>
+                                        <td>{{ assignment.subject.name }}</td>
+                                        <td><a class="btn btn-outline-success btn-sm" href="{% url 'academics:grade_upload' %}?school_class={{ assignment.school_class.pk }}&subject={{ assignment.subject.pk }}&term=Term 1">Open Gradebook</a></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3" class="text-center text-muted py-4">No assignments available yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Recent Notes</h4>
+                        <a href="{% url 'academics:note_add' %}" class="btn btn-brand">Upload Note</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Title</th><th>Class</th><th>Created</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for note in recent_notes %}
+                                    <tr>
+                                        <td>{{ note.title }}</td>
+                                        <td>{{ note.school_class }}</td>
+                                        <td>{{ note.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3" class="text-center text-muted py-4">No notes uploaded yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>My Class</span><strong>{{ student.current_class|default:'Not Assigned' }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Result Records</span><strong>{{ grade_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Attendance Records</span><strong>{{ attendance_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Available Notes</span><strong>{{ note_count }}</strong></div></div>
+        </div>
+        <div class="row g-4">
+            <div class="col-xl-7">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Latest Results</h4>
+                        <a href="{% url 'academics:grade_list' %}" class="btn btn-brand">View All Results</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Subject</th><th>Term</th><th>Total</th><th>Grade</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in results %}
+                                    <tr>
+                                        <td>{{ grade.subject.name }}</td>
+                                        <td>{{ grade.term }}</td>
+                                        <td>{{ grade.total_score|floatformat:2 }}</td>
+                                        <td><span class="status-pill">{{ grade.letter_grade }}</span></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No results uploaded yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Latest Notes</h4>
+                        <a href="{% url 'academics:note_list' %}" class="btn btn-brand">View Notes</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Title</th><th>Subject</th><th>Uploaded</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for note in recent_notes %}
+                                    <tr>
+                                        <td>{{ note.title }}</td>
+                                        <td>{{ note.subject.name|default:"General" }}</td>
+                                        <td>{{ note.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3" class="text-center text-muted py-4">No notes available yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

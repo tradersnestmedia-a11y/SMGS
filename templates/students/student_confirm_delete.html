@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Student | {{ school_name }}{% endblock %}
+{% block page_heading %}Delete Student{% endblock %}
+
+{% block content %}
+    <div class="form-card">
+        <h4 class="section-title">Remove {{ student.full_name }}?</h4>
+        <p class="text-muted">This will also remove the linked login account for {{ student.user.username }}.</p>
+        <form method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger rounded-pill">Delete Student</button>
+            <a href="{% url 'students:detail' student.pk %}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

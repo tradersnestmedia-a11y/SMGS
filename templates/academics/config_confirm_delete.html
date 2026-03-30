@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ item_type|title }} | {{ school_name }}{% endblock %}
+{% block page_heading %}Delete {{ item_type|title }}{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <h4 class="section-title mb-3">Delete {{ item_label }}?</h4>
+        <p class="text-muted">This will permanently remove the {{ item_type }} from the academic configuration.</p>
+        <form method="post" class="d-flex flex-wrap gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger rounded-pill">Delete {{ item_type|title }}</button>
+            <a href="{{ cancel_url }}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile | {{ school_name }}{% endblock %}
+{% block page_heading %}Student Profile{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">{{ student.full_name }}</h4>
+                <p class="text-muted mb-0">Admission Number: {{ student.admission_number }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                {% if current_role == 'student' and request.user == student.user %}
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill">Update Photo</a>
+                {% endif %}
+                {% if current_role == 'admin' %}
+                    <a href="{% url 'students:edit' student.pk %}" class="btn btn-outline-secondary rounded-pill">Edit</a>
+                    <a href="{% url 'students:delete' student.pk %}" class="btn btn-outline-danger rounded-pill">Delete</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="profile-layout">
+            <div class="profile-photo-card">
+                {% if student.user.profile.photo %}
+                    <img src="{{ student.user.profile.photo.url }}" alt="{{ student.full_name }}" class="profile-photo">
+                {% else %}
+                    <div class="profile-photo profile-photo--placeholder">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="profile-grid">
+                <div class="profile-item"><span>Class</span><strong>{{ student.current_class|default:"Not Assigned" }}</strong></div>
+                <div class="profile-item"><span>Gender</span><strong>{{ student.gender }}</strong></div>
+                <div class="profile-item"><span>Date of Birth</span><strong>{{ student.date_of_birth|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Nationality</span><strong>{{ student.nationality|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Email</span><strong>{{ student.email|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Phone</span><strong>{{ student.phone|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Joined On</span><strong>{{ student.joined_on }}</strong></div>
+                <div class="profile-item"><span>Username</span><strong>{{ student.user.username }}</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Guardian Information</h4>
+        <div class="profile-grid">
+            <div class="profile-item"><span>Guardian Name</span><strong>{{ student.guardian_name|default:"-" }}</strong></div>
+            <div class="profile-item"><span>Relationship</span><strong>{{ student.guardian_relationship|default:"-" }}</strong></div>
+            <div class="profile-item"><span>Guardian Phone</span><strong>{{ student.guardian_phone|default:"-" }}</strong></div>
+            <div class="profile-item"><span>Guardian Email</span><strong>{{ student.guardian_email|default:"-" }}</strong></div>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h4 class="section-title mb-3">Address</h4>
+        <p class="mb-0">{{ student.address|default:"No address supplied yet." }}</p>
+    </div>
+{% endblock %}

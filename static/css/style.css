@@ -1,0 +1,626 @@
+:root {
+    --brand-green: #4f86f7;
+    --brand-green-deep: #1f5fcc;
+    --brand-ink: #1f2937;
+    --brand-soft: #eef4fb;
+    --brand-panel: #f8fbff;
+    --brand-white: #ffffff;
+    --brand-border: rgba(58, 84, 120, 0.14);
+}
+
+body {
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #edf2f8 0%, #f8fbfe 100%);
+    color: var(--brand-ink);
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    letter-spacing: 0.02em;
+}
+
+.app-shell {
+    position: relative;
+    overflow-x: hidden;
+}
+
+.app-gradient {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at top left, rgba(79, 134, 247, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(31, 95, 204, 0.12), transparent 28%);
+    z-index: -1;
+}
+
+.sidebar-panel {
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 1.5rem;
+}
+
+.sidebar-panel__inner,
+.sidebar-offcanvas {
+    background: linear-gradient(180deg, #26354a 0%, #1c2634 100%);
+    color: #dae6f5;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.brand-wrap--stacked {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.brand-mark {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, var(--brand-green), #8fb7ff);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 18px 40px rgba(79, 134, 247, 0.28);
+}
+
+.brand-mark--logo {
+    padding: 0.45rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(243, 247, 251, 0.96));
+    border: 1px solid rgba(10, 32, 56, 0.08);
+    box-shadow: 0 18px 40px rgba(8, 15, 29, 0.18);
+}
+
+.brand-mark--sidebar {
+    width: 5.75rem;
+    height: 5.75rem;
+}
+
+.brand-mark--auth {
+    width: 6.5rem;
+    height: 6.5rem;
+}
+
+.brand-mark--registration {
+    width: 5.5rem;
+    height: 5.5rem;
+    flex: 0 0 auto;
+}
+
+.brand-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.brand-title {
+    font-size: 1.8rem;
+    margin: 0;
+    color: #fff;
+}
+
+.brand-copy {
+    color: rgba(218, 230, 245, 0.72);
+    font-size: 0.9rem;
+}
+
+.sidebar-nav {
+    gap: 0.45rem;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(226, 236, 247, 0.88);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link:focus {
+    background: rgba(79, 134, 247, 0.16);
+    color: #fff;
+}
+
+.content-panel {
+    padding: 1.5rem 1.2rem 2rem;
+}
+
+@media (min-width: 992px) {
+    .content-panel {
+        margin-left: 16.666667%;
+        padding: 2rem;
+    }
+}
+
+.content-topbar,
+.mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.page-heading {
+    font-size: clamp(2rem, 2.6vw, 3rem);
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.78rem;
+    color: var(--brand-green-deep);
+    font-weight: 600;
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--brand-border);
+    border-radius: 999px;
+    padding: 0.6rem 0.8rem 0.6rem 1rem;
+    box-shadow: 0 18px 40px rgba(24, 39, 63, 0.08);
+}
+
+.user-chip__meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.user-chip__name {
+    font-weight: 600;
+}
+
+.user-chip__role {
+    font-size: 0.8rem;
+    color: #6b7a8e;
+}
+
+.user-chip__icon {
+    font-size: 1.45rem;
+    color: var(--brand-green-deep);
+    width: 2.6rem;
+    height: 2.6rem;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(79, 134, 247, 0.12);
+}
+
+.logout-btn {
+    padding-inline: 1rem;
+    white-space: nowrap;
+}
+
+.topbar-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-card,
+.content-card,
+.form-card,
+.stat-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--brand-border);
+    border-radius: 1.6rem;
+    box-shadow: 0 20px 40px rgba(27, 45, 68, 0.07);
+}
+
+.hero-card {
+    padding: 1.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(135deg, rgba(79, 134, 247, 0.16), rgba(255, 255, 255, 0.96));
+}
+
+.hero-card__title {
+    font-size: 2.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.hero-card__text {
+    max-width: 48rem;
+    color: #58677c;
+}
+
+.hero-card__badge {
+    width: 4.75rem;
+    height: 4.75rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1.5rem;
+    background: linear-gradient(135deg, var(--brand-green), var(--brand-green-deep));
+    color: #fff;
+    font-size: 1.7rem;
+}
+
+.stat-card {
+    padding: 1.4rem;
+}
+
+.stat-card span {
+    display: block;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: #6a7b93;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card strong {
+    font-size: 2rem;
+    color: var(--brand-ink);
+}
+
+.content-card,
+.form-card {
+    padding: 1.5rem;
+}
+
+.section-title-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.9rem;
+}
+
+.app-table thead th {
+    font-size: 0.82rem;
+    color: #70829a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom-width: 1px;
+}
+
+.app-table td,
+.app-table th {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+}
+
+.btn-brand {
+    background: linear-gradient(135deg, var(--brand-green), var(--brand-green-deep));
+    border: none;
+    color: #fff;
+    border-radius: 999px;
+    padding-inline: 1.15rem;
+}
+
+.btn-brand:hover,
+.btn-brand:focus {
+    color: #fff;
+    opacity: 0.95;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(79, 134, 247, 0.14);
+    color: var(--brand-green-deep);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.search-row form {
+    flex: 1 1 20rem;
+}
+
+.mobile-header {
+    padding: 1rem 1rem 0;
+}
+
+.mobile-school {
+    text-align: right;
+}
+
+.mobile-school__title {
+    display: block;
+    font-weight: 700;
+}
+
+.mobile-school__subtitle {
+    font-size: 0.85rem;
+    color: #73859a;
+}
+
+.login-screen {
+    min-height: 100vh;
+    position: relative;
+    background:
+        linear-gradient(135deg, rgba(20, 36, 61, 0.45), rgba(18, 30, 46, 0.3)),
+        url("../img/school-building-photo.png") center center / cover no-repeat;
+    background-color: #1b283b;
+    color: #fff;
+}
+
+.login-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(13, 22, 38, 0.12), rgba(13, 22, 38, 0.62)),
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.07), transparent 25%),
+        radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.05), transparent 22%);
+    backdrop-filter: blur(2px);
+}
+
+.login-card {
+    position: relative;
+    z-index: 1;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    color: var(--brand-ink);
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 0 24px 60px rgba(18, 31, 52, 0.28);
+}
+
+.login-footer {
+    margin-top: 1.4rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(32, 49, 43, 0.08);
+    color: #5f6f84;
+    font-size: 0.92rem;
+}
+
+.login-alt-actions {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.registration-shell {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #edf2f8 0%, #f8fbfe 100%);
+    color: var(--brand-ink);
+}
+
+.registration-card {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--brand-border);
+    border-radius: 2rem;
+    box-shadow: 0 24px 60px rgba(18, 31, 52, 0.12);
+}
+
+.registration-card--compact {
+    max-width: 640px;
+}
+
+.registration-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.registration-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+}
+
+.registration-step {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem;
+    border-radius: 1.2rem;
+    background: var(--brand-panel);
+    border: 1px solid var(--brand-border);
+}
+
+.registration-step--active {
+    background: rgba(79, 134, 247, 0.12);
+    border-color: rgba(79, 134, 247, 0.32);
+}
+
+.registration-step--complete {
+    background: rgba(79, 134, 247, 0.08);
+}
+
+.registration-step__number {
+    width: 2.2rem;
+    height: 2.2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--brand-green-deep);
+    color: #fff;
+    font-weight: 700;
+}
+
+.registration-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.document-list {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.document-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: fit-content;
+    padding: 0.85rem 1rem;
+    border-radius: 999px;
+    background: rgba(79, 134, 247, 0.08);
+    color: var(--brand-green-deep);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.document-link::before {
+    content: "\f38b";
+    font-family: "bootstrap-icons";
+}
+
+.document-link--inline {
+    width: auto;
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+}
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.profile-photo-card {
+    padding: 1rem;
+    border-radius: 1.4rem;
+    background: var(--brand-panel);
+    border: 1px solid var(--brand-border);
+}
+
+.profile-photo-card--wide {
+    max-width: 320px;
+}
+
+.profile-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 1.2rem;
+    display: block;
+}
+
+.profile-photo--placeholder {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(79, 134, 247, 0.14), rgba(31, 95, 204, 0.08));
+    color: var(--brand-green-deep);
+    font-size: 4.5rem;
+}
+
+.profile-item {
+    padding: 1rem;
+    border-radius: 1.2rem;
+    background: var(--brand-panel);
+    border: 1px solid var(--brand-border);
+}
+
+.profile-item span {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #72839a;
+    margin-bottom: 0.35rem;
+}
+
+.profile-item strong {
+    font-size: 1rem;
+}
+
+.form-card .form-control,
+.form-card .form-select,
+.login-card .form-control,
+.content-card .form-control,
+.content-card .form-select {
+    border-radius: 1rem;
+    border-color: rgba(48, 72, 106, 0.14);
+    padding: 0.8rem 1rem;
+}
+
+.table-input {
+    min-width: 7rem;
+}
+
+@media (max-width: 991.98px) {
+    .hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .content-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .login-screen {
+        background-position: 58% center;
+    }
+
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-card {
+        padding: 1.2rem;
+    }
+
+    .registration-brand {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

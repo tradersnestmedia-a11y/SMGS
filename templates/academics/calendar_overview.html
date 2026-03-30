@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Calendar | {{ school_name }}{% endblock %}
+{% block page_heading %}Academic Calendar{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-xl-5">
+            <div class="content-card h-100">
+                <div class="section-title-wrap">
+                    <h4 class="section-title">Academic Years</h4>
+                    <a href="{% url 'academics:academic_year_add' %}" class="btn btn-brand">Add Year</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>Year</th><th>Dates</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in academic_years %}
+                                <tr>
+                                    <td>{{ item.year }}</td>
+                                    <td>{{ item.start_date }} to {{ item.end_date }}</td>
+                                    <td><span class="status-pill">{{ item.is_current|yesno:"Current,Inactive" }}</span></td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{% url 'academics:academic_year_edit' item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:academic_year_delete' item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted py-5">No academic years configured yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-7">
+            <div class="content-card h-100">
+                <div class="section-title-wrap">
+                    <h4 class="section-title">Terms</h4>
+                    <a href="{% url 'academics:term_add' %}" class="btn btn-brand">Add Term</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>Academic Year</th><th>Term</th><th>Dates</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in terms %}
+                                <tr>
+                                    <td>{{ item.academic_year }}</td>
+                                    <td>{{ item.get_term_number_display }}</td>
+                                    <td>{{ item.start_date }} to {{ item.end_date }}</td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{% url 'academics:term_edit' item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:term_delete' item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted py-5">No terms configured yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

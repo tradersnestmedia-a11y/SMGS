@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Results | {{ school_name }}{% endblock %}
+{% block page_heading %}Results{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <h4 class="section-title">{% if current_role == 'student' %}My Results{% else %}Grade Records{% endif %}</h4>
+        </div>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Term</label>
+                <select name="term" class="form-select">
+                    <option value="">All Terms</option>
+                    {% for value, label in term_choices %}
+                        <option value="{{ value }}" {% if term == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Exam Type</label>
+                <select name="exam_type" class="form-select">
+                    <option value="">All Exam Types</option>
+                    {% for item in exam_types %}
+                        <option value="{{ item.pk }}" {% if exam_type == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-brand w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-card">
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        {% if current_role != 'student' %}<th>Student</th>{% endif %}
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Term</th>
+                        <th>Exam Type</th>
+                        <th>CA</th>
+                        <th>Exam</th>
+                        <th>Total</th>
+                        <th>Grade</th>
+                        <th>Remark</th>
+                        <th>Remarks</th>
+                        {% if current_role != 'student' %}<th>Action</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                        <tr>
+                            {% if current_role != 'student' %}<td>{{ grade.student.full_name }}</td>{% endif %}
+                            <td>{{ grade.school_class }}</td>
+                            <td>{{ grade.subject.name }}</td>
+                            <td>{{ grade.term }}</td>
+                            <td>{{ grade.examination_type.name|default:"-" }}</td>
+                            <td>{{ grade.ca_score }}</td>
+                            <td>{{ grade.exam_score }}</td>
+                            <td>{{ grade.total_score|floatformat:2 }}</td>
+                            <td><span class="status-pill">{{ grade.letter_grade }}</span></td>
+                            <td>{{ grade.grade_remark|default:"-" }}</td>
+                            <td>{{ grade.remarks|default:"-" }}</td>
+                            {% if current_role != 'student' %}
+                                <td><a href="{% url 'academics:grade_delete' grade.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a></td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="{% if current_role == 'student' %}10{% else %}12{% endif %}" class="text-center text-muted py-5">No grade records available.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

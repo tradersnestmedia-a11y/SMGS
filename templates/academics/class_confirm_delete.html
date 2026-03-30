@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Class | {{ school_name }}{% endblock %}
+{% block page_heading %}Delete Class{% endblock %}
+
+{% block content %}
+    <div class="form-card">
+        <h4 class="section-title">Delete {{ school_class }}?</h4>
+        <p class="text-muted">Students linked to this class will lose the class assignment, and class-linked records will be removed.</p>
+        <form method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger rounded-pill">Delete Class</button>
+            <a href="{% url 'academics:class_list' %}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

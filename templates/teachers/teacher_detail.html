@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Profile | {{ school_name }}{% endblock %}
+{% block page_heading %}Teacher Profile{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">{{ teacher.full_name }}</h4>
+                <p class="text-muted mb-0">Employee ID: {{ teacher.employee_id }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                {% if current_role == 'teacher' and request.user == teacher.user %}
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill">Update Photo</a>
+                {% endif %}
+                {% if current_role == 'admin' %}
+                    <a href="{% url 'teachers:edit' teacher.pk %}" class="btn btn-outline-secondary rounded-pill">Edit</a>
+                    <a href="{% url 'teachers:delete' teacher.pk %}" class="btn btn-outline-danger rounded-pill">Delete</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="profile-layout">
+            <div class="profile-photo-card">
+                {% if teacher.user.profile.photo %}
+                    <img src="{{ teacher.user.profile.photo.url }}" alt="{{ teacher.full_name }}" class="profile-photo">
+                {% else %}
+                    <div class="profile-photo profile-photo--placeholder">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="profile-grid">
+                <div class="profile-item"><span>Nationality</span><strong>{{ teacher.nationality|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Specialization</span><strong>{{ teacher.specialization|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Department</span><strong>{{ teacher.department|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Position</span><strong>{{ teacher.position|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Email</span><strong>{{ teacher.email|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Phone</span><strong>{{ teacher.phone|default:"-" }}</strong></div>
+                <div class="profile-item"><span>Hired On</span><strong>{{ teacher.hired_on }}</strong></div>
+                <div class="profile-item"><span>Username</span><strong>{{ teacher.user.username }}</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Qualifications</h4>
+        <p class="mb-0">{{ teacher.qualifications|default:"No qualifications added yet." }}</p>
+    </div>
+
+    <div class="content-card">
+        <h4 class="section-title mb-3">Address</h4>
+        <p class="mb-0">{{ teacher.address|default:"No address supplied yet." }}</p>
+    </div>
+{% endblock %}

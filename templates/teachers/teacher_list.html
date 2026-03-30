@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Teachers | {{ school_name }}{% endblock %}
+{% block page_heading %}Teachers{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <div class="search-row">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, employee ID, or specialization">
+                <button type="submit" class="btn btn-outline-success rounded-pill px-4">Search</button>
+            </form>
+            {% if current_role == 'admin' %}
+                <a href="{% url 'teachers:add' %}" class="btn btn-brand">Add Teacher</a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Teacher Name</th>
+                        <th>Specialization</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ teacher.employee_id }}</td>
+                            <td>{{ teacher.full_name }}</td>
+                            <td>{{ teacher.specialization|default:"-" }}</td>
+                            <td>{{ teacher.email|default:"-" }}</td>
+                            <td>{{ teacher.phone|default:"-" }}</td>
+                            <td class="d-flex gap-2 flex-wrap">
+                                <a href="{% url 'teachers:detail' teacher.pk %}" class="btn btn-outline-success btn-sm rounded-pill">View</a>
+                                {% if current_role == 'admin' %}
+                                    <a href="{% url 'teachers:edit' teacher.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                    <a href="{% url 'teachers:delete' teacher.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">No teachers found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

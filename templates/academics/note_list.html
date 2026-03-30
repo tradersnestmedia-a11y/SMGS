@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Class Notes | {{ school_name }}{% endblock %}
+{% block page_heading %}Class Notes{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="search-row">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-9">
+                    <label class="form-label fw-semibold">Search Notes</label>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by title, subject, or class">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-brand w-100">Search</button>
+                </div>
+            </form>
+            {% if can_manage_notes %}
+                <a href="{% url 'academics:note_add' %}" class="btn btn-brand">Upload Note</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Uploaded</th>
+                        <th>Attachment</th>
+                        {% if can_manage_notes %}<th>Action</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                        <tr>
+                            <td>
+                                <strong>{{ note.title }}</strong>
+                                {% if note.description %}
+                                    <div class="text-muted small mt-1">{{ note.description|truncatechars:100 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ note.school_class }}</td>
+                            <td>{{ note.subject.name|default:"General" }}</td>
+                            <td><span class="status-pill">{{ note.is_published|yesno:"Published,Draft" }}</span></td>
+                            <td>{{ note.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{{ note.attachment.url }}" target="_blank" class="document-link document-link--inline">
+                                    {{ note.attachment_name }}
+                                </a>
+                            </td>
+                            {% if can_manage_notes %}
+                                <td>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{% url 'academics:note_edit' note.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                        <a href="{% url 'academics:note_delete' note.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if can_manage_notes %}7{% else %}6{% endif %}" class="text-center text-muted py-5">
+                                No notes are available for the selected view.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

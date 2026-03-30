@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings | {{ school_name }}{% endblock %}
+{% block page_heading %}Account Settings{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">Update Account Profile</h4>
+                <p class="text-muted mb-0">Change your profile picture and personal contact details.</p>
+            </div>
+            {% if profile_target_url %}
+                <a href="{{ profile_target_url }}" class="btn btn-outline-secondary rounded-pill">Back to My Profile</a>
+            {% endif %}
+        </div>
+
+        <div class="profile-layout">
+            <div class="profile-photo-card profile-photo-card--wide">
+                {% if request.user.profile.photo %}
+                    <img src="{{ request.user.profile.photo.url }}" alt="{{ request.user.username }}" class="profile-photo">
+                {% else %}
+                    <div class="profile-photo profile-photo--placeholder">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        {% include "includes/form_fields.html" %}
+                    </div>
+                    <button type="submit" class="btn btn-brand mt-4">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

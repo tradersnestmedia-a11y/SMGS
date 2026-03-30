@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Classes | {{ school_name }}{% endblock %}
+{% block page_heading %}Classes{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <div class="search-row">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by class name, section, or teacher">
+                <button type="submit" class="btn btn-outline-success rounded-pill px-4">Search</button>
+            </form>
+            {% if current_role == 'admin' %}
+                <a href="{% url 'academics:class_add' %}" class="btn btn-brand">Create Class</a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Section</th>
+                        <th>Class Teacher</th>
+                        <th>Description</th>
+                        <th>Students</th>
+                        {% if current_role == 'admin' %}<th>Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for class_item in classes %}
+                        <tr>
+                            <td>{{ class_item.name }}</td>
+                            <td>{{ class_item.section|default:"-" }}</td>
+                            <td>{{ class_item.class_teacher.full_name|default:"Not Assigned" }}</td>
+                            <td>{{ class_item.description|default:"-"|truncatechars:40 }}</td>
+                            <td>{{ class_item.student_count }}</td>
+                            {% if current_role == 'admin' %}
+                                <td class="d-flex gap-2">
+                                    <a href="{% url 'academics:class_edit' class_item.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                    <a href="{% url 'academics:class_delete' class_item.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-5">No classes created yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

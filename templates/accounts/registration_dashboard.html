@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Registrations | {{ school_name }}{% endblock %}
+{% block page_heading %}Registrations{% endblock %}
+
+{% block content %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-6"><div class="stat-card"><span>Pending Student Registrations</span><strong>{{ pending_students|length }}</strong></div></div>
+        <div class="col-md-6"><div class="stat-card"><span>Pending Staff Registrations</span><strong>{{ pending_staff|length }}</strong></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-6">
+            <div class="content-card">
+                <h4 class="section-title mb-3">Pending Student Registrations</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Target Grade</th><th>Submitted</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in pending_students %}
+                                <tr>
+                                    <td>{{ item.student_id }}</td>
+                                    <td>{{ item.full_name }}</td>
+                                    <td>{{ item.target_grade }}</td>
+                                    <td>{{ item.created_at|date:"M d, Y" }}</td>
+                                    <td><a href="{% url 'accounts:student_registration_detail' item.pk %}" class="btn btn-outline-primary btn-sm rounded-pill">Review</a></td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-4">No pending student registrations.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="content-card">
+                <h4 class="section-title mb-3">Pending Staff Registrations</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Department</th><th>Submitted</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in pending_staff %}
+                                <tr>
+                                    <td>{{ item.employee_id }}</td>
+                                    <td>{{ item.full_name }}</td>
+                                    <td>{{ item.department }}</td>
+                                    <td>{{ item.created_at|date:"M d, Y" }}</td>
+                                    <td><a href="{% url 'accounts:staff_registration_detail' item.pk %}" class="btn btn-outline-primary btn-sm rounded-pill">Review</a></td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-4">No pending staff registrations.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="content-card">
+                <h4 class="section-title mb-3">Recent Student Decisions</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Status</th><th>Reviewed</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_students %}
+                                <tr>
+                                    <td>{{ item.student_id }}</td>
+                                    <td>{{ item.full_name }}</td>
+                                    <td><span class="status-pill">{{ item.get_status_display }}</span></td>
+                                    <td>{{ item.reviewed_at|default:"-" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted py-4">No reviewed student registrations yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="content-card">
+                <h4 class="section-title mb-3">Recent Staff Decisions</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Status</th><th>Reviewed</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_staff %}
+                                <tr>
+                                    <td>{{ item.employee_id }}</td>
+                                    <td>{{ item.full_name }}</td>
+                                    <td><span class="status-pill">{{ item.get_status_display }}</span></td>
+                                    <td>{{ item.reviewed_at|default:"-" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted py-4">No reviewed staff registrations yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

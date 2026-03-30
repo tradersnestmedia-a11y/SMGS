@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration Review | {{ school_name }}{% endblock %}
+{% block page_heading %}Student Registration Review{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">{{ registration.full_name }}</h4>
+                <p class="text-muted mb-0">{{ registration.student_id }} | {{ registration.get_status_display }}</p>
+            </div>
+            <a href="{% url 'accounts:registration_dashboard' %}" class="btn btn-outline-secondary rounded-pill">Back to Queue</a>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-item"><span>Phone</span><strong>{{ registration.zambian_phone }}</strong></div>
+            <div class="profile-item"><span>Email</span><strong>{{ registration.personal_email }}</strong></div>
+            <div class="profile-item"><span>Date of Birth</span><strong>{{ registration.date_of_birth }}</strong></div>
+            <div class="profile-item"><span>Gender</span><strong>{{ registration.gender }}</strong></div>
+            <div class="profile-item"><span>Nationality</span><strong>{{ registration.nationality }}</strong></div>
+            <div class="profile-item"><span>Target Grade</span><strong>{{ registration.target_grade }}</strong></div>
+            <div class="profile-item"><span>Submitted</span><strong>{{ registration.created_at|date:"M d, Y H:i" }}</strong></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-7">
+            <div class="content-card mb-4">
+                <h4 class="section-title mb-3">Guardian Info</h4>
+                <div class="profile-grid">
+                    <div class="profile-item"><span>Name</span><strong>{{ registration.guardian_name }}</strong></div>
+                    <div class="profile-item"><span>Relationship</span><strong>{{ registration.guardian_relationship }}</strong></div>
+                    <div class="profile-item"><span>Phone</span><strong>{{ registration.guardian_phone }}</strong></div>
+                    <div class="profile-item"><span>Email</span><strong>{{ registration.guardian_email }}</strong></div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <h4 class="section-title mb-3">Academic History</h4>
+                <div class="profile-grid">
+                    <div class="profile-item"><span>Previous School</span><strong>{{ registration.previous_school_attended }}</strong></div>
+                    <div class="profile-item"><span>Last Grade Attended</span><strong>{{ registration.last_grade_attended }}</strong></div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <h4 class="section-title mb-3">Address</h4>
+                <p class="mb-0">{{ registration.address|default:"No address supplied yet." }}</p>
+            </div>
+
+            <div class="content-card">
+                <h4 class="section-title mb-3">Documents</h4>
+                <div class="document-list">
+                    {% if registration.last_report_card %}<a href="{{ registration.last_report_card.url }}" target="_blank" class="document-link">Last Report Card</a>{% endif %}
+                    {% if registration.birth_certificate %}<a href="{{ registration.birth_certificate.url }}" target="_blank" class="document-link">Birth Certificate</a>{% endif %}
+                    {% if registration.transfer_letter %}<a href="{{ registration.transfer_letter.url }}" target="_blank" class="document-link">Transfer Letter</a>{% endif %}
+                    {% if registration.profile_photo %}<a href="{{ registration.profile_photo.url }}" target="_blank" class="document-link">Profile Photo</a>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="content-card mb-4">
+                <h4 class="section-title mb-3">Admin Decision</h4>
+                {% if registration.status == 'pending_admin' %}
+                    <form method="post" class="d-grid gap-3">
+                        {% csrf_token %}
+                        <div>
+                            <label class="form-label fw-semibold" for="{{ review_form.review_reason.id_for_label }}">Review Note / Rejection Reason</label>
+                            {{ review_form.review_reason }}
+                        </div>
+                        <button type="submit" name="action" value="approve" class="btn btn-brand">Approve and Send Credentials</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-outline-danger rounded-pill">Reject Application</button>
+                    </form>
+                {% else %}
+                    <div class="profile-grid">
+                        <div class="profile-item"><span>Status</span><strong>{{ registration.get_status_display }}</strong></div>
+                        <div class="profile-item"><span>Reviewed By</span><strong>{{ registration.reviewed_by|default:"-" }}</strong></div>
+                        <div class="profile-item"><span>Reviewed At</span><strong>{{ registration.reviewed_at|default:"-" }}</strong></div>
+                        <div class="profile-item"><span>Approved User</span><strong>{{ registration.approved_user.username|default:"-" }}</strong></div>
+                        <div class="profile-item"><span>Email Sent</span><strong>{{ registration.email_sent|yesno:"Yes,No" }}</strong></div>
+                        <div class="profile-item"><span>SMS Sent</span><strong>{{ registration.sms_sent|yesno:"Yes,No" }}</strong></div>
+                    </div>
+                    {% if registration.review_reason %}
+                        <div class="alert alert-light border rounded-4 mt-3 mb-0">{{ registration.review_reason }}</div>
+                    {% endif %}
+                    {% if registration.notification_summary %}
+                        <div class="alert alert-light border rounded-4 mt-3 mb-0">{{ registration.notification_summary }}</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="content-card">
+                <h4 class="section-title mb-3">Notification Log</h4>
+                <div class="d-grid gap-3">
+                    {% for item in notification_logs %}
+                        <div class="profile-item">
+                            <span>{{ item.get_channel_display }} - {{ item.get_status_display }}</span>
+                            <strong>{{ item.recipient }}</strong>
+                            <p class="mb-0 mt-2 text-muted">{{ item.response_message }}</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted mb-0">No notifications have been logged yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Grades | {{ school_name }}{% endblock %}
+{% block page_heading %}Grade Upload{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Select Gradebook</h4>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Class</label>
+                {{ form.school_class }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Subject</label>
+                {{ form.subject }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Term</label>
+                {{ form.term }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Exam Type</label>
+                {{ form.examination_type }}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-brand w-100">Load</button>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Linked Academic Term</label>
+                {{ form.term_record }}
+            </div>
+        </form>
+    </div>
+
+    {% if grade_rows %}
+        <div class="content-card">
+            <div class="section-title-wrap">
+                <h4 class="section-title">{{ selected_subject.name }} - {{ selected_class }}</h4>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="status-pill">{{ selected_term }}</span>
+                    <span class="status-pill">{{ selected_exam_type.name }}</span>
+                    {% if selected_term_record %}<span class="status-pill">{{ selected_term_record.academic_year }} / {{ selected_term_record.get_term_number_display }}</span>{% endif %}
+                </div>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="school_class" value="{{ selected_class.pk }}">
+                <input type="hidden" name="subject" value="{{ selected_subject.pk }}">
+                <input type="hidden" name="term" value="{{ selected_term }}">
+                <input type="hidden" name="examination_type" value="{{ selected_exam_type.pk }}">
+                {% if selected_term_record %}<input type="hidden" name="term_record" value="{{ selected_term_record.pk }}">{% endif %}
+                <div class="table-responsive">
+                    <table class="table align-middle app-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>CA Score /40</th>
+                                <th>Exam Score /60</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in grade_rows %}
+                                <tr>
+                                    <td>{{ row.student.full_name }}</td>
+                                    <td><input type="number" step="0.01" min="0" max="40" name="ca_{{ row.student.id }}" class="form-control table-input" value="{{ row.ca_score }}"></td>
+                                    <td><input type="number" step="0.01" min="0" max="60" name="exam_{{ row.student.id }}" class="form-control table-input" value="{{ row.exam_score }}"></td>
+                                    <td><input type="text" name="remarks_{{ row.student.id }}" class="form-control" value="{{ row.remarks }}" placeholder="Optional comment"></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-brand mt-3">Save Grades</button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects | {{ school_name }}{% endblock %}
+{% block page_heading %}Subjects{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <div class="search-row">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by subject name or code">
+                <button type="submit" class="btn btn-outline-success rounded-pill px-4">Search</button>
+            </form>
+            {% if current_role == 'admin' %}
+                <a href="{% url 'academics:subject_add' %}" class="btn btn-brand">Create Subject</a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        {% if current_role == 'admin' %}<th>Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subjects %}
+                        <tr>
+                            <td>{{ subject.code }}</td>
+                            <td>{{ subject.name }}</td>
+                            <td>{{ subject.description|default:"-"|truncatechars:50 }}</td>
+                            {% if current_role == 'admin' %}
+                                <td class="d-flex gap-2">
+                                    <a href="{% url 'academics:subject_edit' subject.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                    <a href="{% url 'academics:subject_delete' subject.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-5">No subjects created yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

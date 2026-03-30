@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Records | {{ school_name }}{% endblock %}
+{% block page_heading %}Attendance Records{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Filter Records</h4>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Class</label>
+                {{ form.school_class }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Date</label>
+                {{ form.date }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-brand w-100">View Records</button>
+            </div>
+        </form>
+    </div>
+
+    {% if attendance_summary %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Total Students</span><strong>{{ attendance_summary.total }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Present</span><strong>{{ attendance_summary.present }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Absent</span><strong>{{ attendance_summary.absent }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Late / Excused</span><strong>{{ attendance_summary.late }} / {{ attendance_summary.excused }}</strong></div></div>
+        </div>
+    {% endif %}
+
+    <div class="content-card">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">Daily Register</h4>
+                {% if attendance_register %}
+                    <p class="text-muted mb-0">Last saved {{ attendance_register.last_saved_at|date:"Y-m-d H:i" }} via {{ attendance_register.get_save_mode_display }}</p>
+                {% endif %}
+            </div>
+            {% if selected_class and selected_date %}
+                <a href="{% url 'academics:attendance_export' %}?school_class={{ selected_class.pk }}&date={{ selected_date|date:'Y-m-d' }}" class="btn btn-outline-secondary rounded-pill">Download PDF</a>
+            {% endif %}
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Class</th>
+                        <th>Student</th>
+                        <th>Status</th>
+                        <th>Marked By</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td>{{ record.date }}</td>
+                            <td>{{ record.school_class }}</td>
+                            <td>{{ record.student.full_name }}</td>
+                            <td><span class="status-pill">{{ record.status }}</span></td>
+                            <td>{{ record.marked_by.full_name|default:"Admin" }}</td>
+                            <td>{{ record.note|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-5">Load a class and date to view attendance records.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

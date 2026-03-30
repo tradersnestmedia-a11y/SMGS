@@ -1,0 +1,48 @@
+from django.urls import path
+
+from . import views
+
+app_name = "academics"
+
+urlpatterns = [
+    path("classes/", views.class_list_view, name="class_list"),
+    path("classes/add/", views.class_create_view, name="class_add"),
+    path("classes/<int:pk>/edit/", views.class_update_view, name="class_edit"),
+    path("classes/<int:pk>/delete/", views.class_delete_view, name="class_delete"),
+    path("subjects/", views.subject_list_view, name="subject_list"),
+    path("subjects/add/", views.subject_create_view, name="subject_add"),
+    path("subjects/<int:pk>/edit/", views.subject_update_view, name="subject_edit"),
+    path("subjects/<int:pk>/delete/", views.subject_delete_view, name="subject_delete"),
+    path("calendar/", views.calendar_overview_view, name="calendar"),
+    path("calendar/years/add/", views.academic_year_create_view, name="academic_year_add"),
+    path("calendar/years/<int:pk>/edit/", views.academic_year_update_view, name="academic_year_edit"),
+    path("calendar/years/<int:pk>/delete/", views.academic_year_delete_view, name="academic_year_delete"),
+    path("calendar/terms/add/", views.term_create_view, name="term_add"),
+    path("calendar/terms/<int:pk>/edit/", views.term_update_view, name="term_edit"),
+    path("calendar/terms/<int:pk>/delete/", views.term_delete_view, name="term_delete"),
+    path("grading/setup/", views.grading_setup_view, name="grading_setup"),
+    path("grading/exams/add/", views.exam_type_create_view, name="exam_type_add"),
+    path("grading/exams/<int:pk>/edit/", views.exam_type_update_view, name="exam_type_edit"),
+    path("grading/exams/<int:pk>/delete/", views.exam_type_delete_view, name="exam_type_delete"),
+    path("grading/rules/add/", views.grading_rule_create_view, name="grading_rule_add"),
+    path("grading/rules/<int:pk>/edit/", views.grading_rule_update_view, name="grading_rule_edit"),
+    path("grading/rules/<int:pk>/delete/", views.grading_rule_delete_view, name="grading_rule_delete"),
+    path("grading/subjects/add/", views.subject_grade_level_create_view, name="subject_grade_level_add"),
+    path("grading/subjects/<int:pk>/edit/", views.subject_grade_level_update_view, name="subject_grade_level_edit"),
+    path("grading/subjects/<int:pk>/delete/", views.subject_grade_level_delete_view, name="subject_grade_level_delete"),
+    path("assignments/", views.assignment_list_view, name="assignment_list"),
+    path("assignments/add/", views.assignment_create_view, name="assignment_add"),
+    path("assignments/<int:pk>/edit/", views.assignment_update_view, name="assignment_edit"),
+    path("assignments/<int:pk>/delete/", views.assignment_delete_view, name="assignment_delete"),
+    path("attendance/mark/", views.attendance_mark_view, name="attendance_mark"),
+    path("attendance/autosave/", views.attendance_autosave_view, name="attendance_autosave"),
+    path("attendance/export/", views.attendance_export_pdf_view, name="attendance_export"),
+    path("attendance/records/", views.attendance_records_view, name="attendance_records"),
+    path("grades/upload/", views.grade_upload_view, name="grade_upload"),
+    path("grades/", views.grade_list_view, name="grade_list"),
+    path("grades/<int:pk>/delete/", views.grade_delete_view, name="grade_delete"),
+    path("notes/", views.note_list_view, name="note_list"),
+    path("notes/add/", views.note_create_view, name="note_add"),
+    path("notes/<int:pk>/edit/", views.note_update_view, name="note_edit"),
+    path("notes/<int:pk>/delete/", views.note_delete_view, name="note_delete"),
+]

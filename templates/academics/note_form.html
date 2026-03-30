@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | {{ school_name }}{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <div class="content-card">
+        <div class="section-title-wrap">
+            <h4 class="section-title">{{ page_title }}</h4>
+            <a href="{% url 'academics:note_list' %}" class="btn btn-outline-secondary rounded-pill">Back to Notes</a>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-4">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <button type="submit" class="btn btn-brand mt-4">{{ submit_label }}</button>
+        </form>
+    </div>
+{% endblock %}
