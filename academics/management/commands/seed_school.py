@@ -362,33 +362,40 @@ class Command(BaseCommand):
                 },
             )
 
-        if not StudentRegistration.objects.filter(status=StudentRegistration.STATUS_PENDING).exists():
-            StudentRegistration.objects.create(
-                full_name="Lweendo Mwansa",
-                date_of_birth=today - timedelta(days=365 * 14),
-                nationality="Zambian",
-                zambian_phone="0966112233",
-                personal_email="lweendo.applicant@example.com",
-                guardian_name="Mrs Mwansa",
-                guardian_relationship="Mother",
-                guardian_phone="0978112233",
-                guardian_email="mwansa.guardian@example.com",
-                previous_school_attended="Hope Basic School",
-                last_grade_completed="Grade 7",
-                year_of_completion=today.year - 1,
-                target_grade="Grade 8",
-            )
+        student_registration = (
+            StudentRegistration.objects.filter(personal_email="lweendo.applicant@example.com").order_by("pk").first()
+        )
+        if student_registration is None:
+            student_registration = StudentRegistration(personal_email="lweendo.applicant@example.com")
+        student_registration.full_name = "Lweendo Mwansa"
+        student_registration.date_of_birth = today - timedelta(days=365 * 14)
+        student_registration.gender = "Female"
+        student_registration.nationality = "Zambian"
+        student_registration.zambian_phone = "0966112233"
+        student_registration.guardian_name = "Mrs Mwansa"
+        student_registration.guardian_relationship = "Mother"
+        student_registration.guardian_phone = "0978112233"
+        student_registration.guardian_email = "mwansa.guardian@example.com"
+        student_registration.address = "Lusaka, Zambia"
+        student_registration.previous_school_attended = "Hope Basic School"
+        student_registration.last_grade_attended = "Grade 7"
+        student_registration.target_grade = "Grade 8"
+        student_registration.status = StudentRegistration.STATUS_PENDING
+        student_registration.save()
 
-        if not StaffRegistration.objects.filter(status=StaffRegistration.STATUS_PENDING).exists():
-            StaffRegistration.objects.create(
-                full_name="Josephine Kalima",
-                nationality="Zambian",
-                zambian_phone="0977334455",
-                personal_email="jkalima.applicant@example.com",
-                qualifications="Bachelor of Education in Science",
-                department="Science",
-                position_applying_for="Science Teacher",
-            )
+        staff_registration = (
+            StaffRegistration.objects.filter(personal_email="jkalima.applicant@example.com").order_by("pk").first()
+        )
+        if staff_registration is None:
+            staff_registration = StaffRegistration(personal_email="jkalima.applicant@example.com")
+        staff_registration.full_name = "Josephine Kalima"
+        staff_registration.nationality = "Zambian"
+        staff_registration.zambian_phone = "0977334455"
+        staff_registration.qualifications = "Bachelor of Education in Science"
+        staff_registration.department = "Science"
+        staff_registration.position_applying_for = "Science Teacher"
+        staff_registration.status = StaffRegistration.STATUS_PENDING
+        staff_registration.save()
 
         self.stdout.write(self.style.SUCCESS("Sim Tech Academy sample data created successfully."))
         self.stdout.write("Admin login: admin / admin12345")
