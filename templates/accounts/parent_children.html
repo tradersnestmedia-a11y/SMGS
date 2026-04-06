@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Parent Portal | {{ school_name }}{% endblock %}
+{% block page_heading %}Parent Portal{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">{{ parent.full_name }}</h4>
+                <p class="text-muted mb-0">Monitor your linked students, fee balances, and recent academic activity.</p>
+            </div>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill">Account Settings</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        {% for snapshot in student_snapshots %}
+            <div class="col-xl-6">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <div>
+                            <h4 class="section-title">{{ snapshot.student.full_name }}</h4>
+                            <p class="text-muted mb-0">{{ snapshot.student.current_class|default:"Not Assigned" }}</p>
+                        </div>
+                        <a href="{% url 'accounts:parent_student_overview' snapshot.student.pk %}" class="btn btn-brand">Open</a>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-item"><span>Results</span><strong>{{ snapshot.grade_count }}</strong></div>
+                        <div class="profile-item"><span>Attendance</span><strong>{{ snapshot.attendance_count }}</strong></div>
+                        <div class="profile-item"><span>Notes</span><strong>{{ snapshot.note_count }}</strong></div>
+                        <div class="profile-item"><span>Current Term</span><strong>{{ snapshot.current_term|default:"Not Set" }}</strong></div>
+                        <div class="profile-item"><span>Outstanding</span><strong>{% if snapshot.fee_summary %}ZMW {{ snapshot.fee_summary.balance|floatformat:2 }}{% else %}-{% endif %}</strong></div>
+                        <div class="profile-item"><span>Expected</span><strong>{% if snapshot.fee_summary %}ZMW {{ snapshot.fee_summary.expected_amount|floatformat:2 }}{% else %}-{% endif %}</strong></div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="content-card text-center text-muted py-5">No students are linked to this parent account yet.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="content-card">
+        <h4 class="section-title mb-3">Recent Fee Payments</h4>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Student</th>
+                        <th>Term</th>
+                        <th>Amount</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in recent_payments %}
+                        <tr>
+                            <td>{{ payment.receipt_number }}</td>
+                            <td>{{ payment.student.full_name }}</td>
+                            <td>{{ payment.term }}</td>
+                            <td>ZMW {{ payment.amount_paid|floatformat:2 }}</td>
+                            <td><a href="{% url 'academics:fee_receipt' payment.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">PDF</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-5">No payments recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

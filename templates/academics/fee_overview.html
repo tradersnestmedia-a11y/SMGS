@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Fee Management | {{ school_name }}{% endblock %}
+{% block page_heading %}Fee Management{% endblock %}
+
+{% block content %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Current Term</span><strong>{{ current_term|default:"Not Set" }}</strong></div></div>
+        <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Structures</span><strong>{{ fee_structures|length }}</strong></div></div>
+        <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Recent Payments</span><strong>{{ payments|length }}</strong></div></div>
+        <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Total Collected</span><strong>ZMW {{ total_collected|floatformat:2 }}</strong></div></div>
+    </div>
+
+    <div class="content-card mb-4">
+        <div class="search-row">
+            <form method="get" class="row g-3 align-items-end flex-grow-1">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Term</label>
+                    <select name="term" class="form-select">
+                        <option value="">All Terms</option>
+                        {% for term in terms %}
+                            <option value="{{ term.pk }}" {% if selected_term == term.pk|stringformat:'s' %}selected{% endif %}>{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Search Payments</label>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Student, receipt, or reference">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-brand w-100">Filter</button>
+                </div>
+            </form>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'academics:fee_structure_add' %}" class="btn btn-outline-secondary rounded-pill">New Structure</a>
+                <a href="{% url 'academics:fee_payment_add' %}" class="btn btn-brand">Record Payment</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <h4 class="section-title">Fee Structures</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Grade</th>
+                        <th>Tuition</th>
+                        <th>Development</th>
+                        <th>Exam</th>
+                        <th>Activity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for structure in fee_structures %}
+                        <tr>
+                            <td>{{ structure.term }}</td>
+                            <td>Grade {{ structure.grade_level }}</td>
+                            <td>ZMW {{ structure.tuition_fee|floatformat:2 }}</td>
+                            <td>ZMW {{ structure.development_fee|floatformat:2 }}</td>
+                            <td>ZMW {{ structure.examination_fee|floatformat:2 }}</td>
+                            <td>ZMW {{ structure.activity_fee|floatformat:2 }}</td>
+                            <td>ZMW {{ structure.total_amount|floatformat:2 }}</td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{% url 'academics:fee_structure_edit' structure.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                    <a href="{% url 'academics:fee_structure_delete' structure.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center text-muted py-5">No fee structures created yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="section-title-wrap">
+            <h4 class="section-title">Recent Payments</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Student</th>
+                        <th>Term</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.receipt_number }}</td>
+                            <td>{{ payment.student.full_name }}</td>
+                            <td>{{ payment.term }}</td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td>ZMW {{ payment.amount_paid|floatformat:2 }}</td>
+                            <td>{{ payment.payment_date }}</td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{% url 'academics:fee_payment_edit' payment.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">Edit</a>
+                                    <a href="{% url 'academics:fee_statement' payment.student.pk %}" class="btn btn-outline-success btn-sm rounded-pill">Statement</a>
+                                    <a href="{% url 'academics:fee_receipt' payment.pk %}" class="btn btn-outline-primary btn-sm rounded-pill">Receipt PDF</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted py-5">No fee payments recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

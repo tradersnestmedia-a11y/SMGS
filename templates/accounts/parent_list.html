@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Parents | {{ school_name }}{% endblock %}
+{% block page_heading %}Parents{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="search-row">
+            <form method="get" class="row g-3 align-items-end flex-grow-1">
+                <div class="col-md-9">
+                    <label class="form-label fw-semibold">Search Parents</label>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, email, phone, or student">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-brand w-100">Search</button>
+                </div>
+            </form>
+            <a href="{% url 'accounts:parent_add' %}" class="btn btn-brand">Add Parent</a>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Parent</th>
+                        <th>Relationship</th>
+                        <th>Phone</th>
+                        <th>Linked Students</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parent in parents %}
+                        <tr>
+                            <td>
+                                <strong>{{ parent.full_name }}</strong>
+                                <div class="text-muted small">{{ parent.user.email }}</div>
+                            </td>
+                            <td>{{ parent.relationship|default:"Guardian" }}</td>
+                            <td>{{ parent.phone_number }}</td>
+                            <td>{{ parent.linked_student_count }}</td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{% url 'accounts:parent_detail' parent.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">View</a>
+                                    <a href="{% url 'accounts:parent_edit' parent.pk %}" class="btn btn-outline-success btn-sm rounded-pill">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-5">No parent accounts available yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

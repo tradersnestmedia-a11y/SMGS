@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Fee Statement | {{ school_name }}{% endblock %}
+{% block page_heading %}Fee Statement{% endblock %}
+
+{% block content %}
+    <div class="content-card mb-4">
+        <div class="section-title-wrap">
+            <div>
+                <h4 class="section-title">{{ student.full_name }}</h4>
+                <p class="text-muted mb-0">{{ student.current_class|default:"Not Assigned" }} • Admission {{ student.admission_number }}</p>
+            </div>
+            {% if current_role == 'admin' %}
+                <a href="{% url 'academics:fee_payment_add' %}?student={{ student.pk }}" class="btn btn-brand">Record Payment</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="content-card mb-4">
+        <h4 class="section-title mb-3">Term Summary</h4>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Expected</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for summary in fee_summaries %}
+                        <tr>
+                            <td>{{ summary.term }}</td>
+                            <td>ZMW {{ summary.expected_amount|floatformat:2 }}</td>
+                            <td>ZMW {{ summary.amount_paid|floatformat:2 }}</td>
+                            <td>ZMW {{ summary.balance|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-5">No fee structure or payment history is available yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h4 class="section-title mb-3">Payment History</h4>
+        <div class="table-responsive">
+            <table class="table align-middle app-table">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Date</th>
+                        <th>Term</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.receipt_number }}</td>
+                            <td>{{ payment.payment_date }}</td>
+                            <td>{{ payment.term }}</td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td>{{ payment.transaction_reference|default:"-" }}</td>
+                            <td>ZMW {{ payment.amount_paid|floatformat:2 }}</td>
+                            <td><a href="{% url 'academics:fee_receipt' payment.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">PDF</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted py-5">No payments have been recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | {{ school_name }}{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-4">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-brand">{{ submit_label }}</button>
+                <a href="{{ cancel_url }}" class="btn btn-outline-secondary rounded-pill">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
