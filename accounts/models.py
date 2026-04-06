@@ -20,11 +20,13 @@ class UserProfile(models.Model):
     ROLE_ADMIN = "admin"
     ROLE_TEACHER = "teacher"
     ROLE_STUDENT = "student"
+    ROLE_PARENT = "parent"
 
     ROLE_CHOICES = (
         (ROLE_ADMIN, "Admin"),
         (ROLE_TEACHER, "Teacher"),
         (ROLE_STUDENT, "Student"),
+        (ROLE_PARENT, "Parent"),
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -174,3 +176,31 @@ class NotificationLog(models.Model):
 
     def __str__(self):
         return f"{self.get_channel_display()} to {self.recipient} - {self.get_status_display()}"
+
+
+class ParentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="parent_profile")
+    phone_number = models.CharField(max_length=20)
+    occupation = models.CharField(max_length=100, blank=True)
+    relationship = models.CharField(max_length=50, default="Guardian")
+    physical_address = models.TextField(blank=True)
+    district = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=50, blank=True)
+    students = models.ManyToManyField("students.Student", related_name="parent_accounts", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user__first_name", "user__last_name", "user__username"]
+
+    def __str__(self):
+        return self.full_name
+
+    @property
+    def full_name(self):
+        full_name = self.user.get_full_name().strip()
+        return full_name or self.user.username
+
+    @property
+    def linked_student_count(self):
+        return self.students.count()

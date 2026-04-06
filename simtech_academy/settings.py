@@ -3,6 +3,28 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def load_env_file():
+    env_path = BASE_DIR / ".env"
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
+load_env_file()
+
 SECRET_KEY = "django-insecure-sim-tech-academy-demo-key"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
@@ -82,13 +104,13 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 
 SCHOOL_NAME = "Sim Tech Academy"
 
-EMAIL_HOST_USER = os.getenv("SIMTECH_EMAIL_HOST_USER", "tradersnestmedia@gmail.com")
+EMAIL_HOST_USER = os.getenv("SIMTECH_EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("SIMTECH_EMAIL_PASSWORD", "")
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST = os.getenv("SIMTECH_EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("SIMTECH_EMAIL_PORT", "587"))
+EMAIL_USE_TLS = env_bool("SIMTECH_EMAIL_USE_TLS", True)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "school@example.com"
+SERVER_EMAIL = EMAIL_HOST_USER or "school@example.com"
 EMAIL_TIMEOUT = 20
 EMAIL_BACKEND = (
     "django.core.mail.backends.smtp.EmailBackend"
@@ -97,4 +119,4 @@ EMAIL_BACKEND = (
 )
 
 SIMTECH_SMS_BACKEND = os.getenv("SIMTECH_SMS_BACKEND", "console")
-SIMTECH_SMS_ALWAYS_SEND = os.getenv("SIMTECH_SMS_ALWAYS_SEND", "true").lower() in {"1", "true", "yes", "on"}
+SIMTECH_SMS_ALWAYS_SEND = env_bool("SIMTECH_SMS_ALWAYS_SEND", True)

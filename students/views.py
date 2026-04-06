@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import UserProfile
-from accounts.permissions import get_user_role, role_required
+from accounts.permissions import get_user_role, parent_can_access_student, role_required
 
 from .forms import StudentCreateForm, StudentUpdateForm
 from .models import Student
@@ -33,7 +33,9 @@ def student_detail_view(request, pk):
     role = get_user_role(request.user)
     if role == UserProfile.ROLE_STUDENT and student.user != request.user:
         raise PermissionDenied
-    if role not in {UserProfile.ROLE_ADMIN, UserProfile.ROLE_TEACHER, UserProfile.ROLE_STUDENT}:
+    if role == UserProfile.ROLE_PARENT and not parent_can_access_student(request.user, student):
+        raise PermissionDenied
+    if role not in {UserProfile.ROLE_ADMIN, UserProfile.ROLE_TEACHER, UserProfile.ROLE_STUDENT, UserProfile.ROLE_PARENT}:
         raise PermissionDenied
     return render(request, "students/student_detail.html", {"student": student})
 

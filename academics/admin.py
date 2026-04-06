@@ -6,6 +6,8 @@ from .models import (
     AttendanceRegister,
     ClassNote,
     ExaminationType,
+    FeePayment,
+    FeeStructure,
     Grade,
     GradingSystem,
     SchoolClass,
@@ -98,3 +100,16 @@ class ClassNoteAdmin(admin.ModelAdmin):
     list_display = ("title", "school_class", "subject", "uploaded_by", "is_published", "created_at")
     list_filter = ("school_class", "subject", "is_published", "created_at")
     search_fields = ("title", "description", "school_class__name", "subject__name")
+
+
+@admin.register(FeeStructure)
+class FeeStructureAdmin(admin.ModelAdmin):
+    list_display = ("term", "grade_level", "tuition_fee", "development_fee", "examination_fee", "activity_fee")
+    list_filter = ("term__academic_year", "term", "grade_level")
+
+
+@admin.register(FeePayment)
+class FeePaymentAdmin(admin.ModelAdmin):
+    list_display = ("receipt_number", "student", "term", "amount_paid", "payment_method", "payment_date", "recorded_by")
+    list_filter = ("term__academic_year", "term", "payment_method", "payment_date")
+    search_fields = ("receipt_number", "student__first_name", "student__last_name", "student__admission_number", "transaction_reference")

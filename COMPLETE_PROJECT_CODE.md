@@ -117,16 +117,16 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 
 SCHOOL_NAME = "Sim Tech Academy"
 
-EMAIL_HOST_USER = "tradersnestmedia@gmail.com"
+EMAIL_HOST_USER = os.getenv("SIMTECH_EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("SIMTECH_EMAIL_PASSWORD", "")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "school@example.com"
+SERVER_EMAIL = EMAIL_HOST_USER or "school@example.com"
 EMAIL_BACKEND = (
     "django.core.mail.backends.smtp.EmailBackend"
-    if EMAIL_HOST_PASSWORD
+    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
     else "django.core.mail.backends.console.EmailBackend"
 )
 
@@ -5586,7 +5586,7 @@ http://127.0.0.1:8000/
 ## Notes
 
 - SQLite is used by default, so no extra database setup is required.
-- Real email notifications are configured to use `tradersnestmedia@gmail.com`.
+- Real email notifications use the address supplied through `SIMTECH_EMAIL_HOST_USER`.
 - SMS notifications use a console/logging fallback by default until a live Zambian SMS gateway is configured.
 - Registration credentials are only generated and sent after admin approval.
 - You can also create your own admin account with:

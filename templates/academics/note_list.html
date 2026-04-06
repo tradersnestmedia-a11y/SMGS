@@ -7,7 +7,18 @@
     <div class="content-card mb-4">
         <div class="search-row">
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-9">
+                {% if student_choices %}
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Student</label>
+                        <select name="student" class="form-select">
+                            <option value="">All Linked Students</option>
+                            {% for item in student_choices %}
+                                <option value="{{ item.pk }}" {% if student_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                <div class="{% if student_choices %}col-md-6{% else %}col-md-9{% endif %}">
                     <label class="form-label fw-semibold">Search Notes</label>
                     <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by title, subject, or class">
                 </div>

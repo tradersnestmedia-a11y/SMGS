@@ -9,6 +9,17 @@
             <h4 class="section-title">{% if current_role == 'student' %}My Results{% else %}Grade Records{% endif %}</h4>
         </div>
         <form method="get" class="row g-3 align-items-end">
+            {% if student_choices %}
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Student</label>
+                    <select name="student" class="form-select">
+                        <option value="">All Linked Students</option>
+                        {% for item in student_choices %}
+                            <option value="{{ item.pk }}" {% if student_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
             <div class="col-md-4">
                 <label class="form-label fw-semibold">Term</label>
                 <select name="term" class="form-select">
@@ -49,7 +60,7 @@
                         <th>Grade</th>
                         <th>Remark</th>
                         <th>Remarks</th>
-                        {% if current_role != 'student' %}<th>Action</th>{% endif %}
+                        {% if current_role == 'admin' or current_role == 'teacher' %}<th>Action</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -66,12 +77,12 @@
                             <td><span class="status-pill">{{ grade.letter_grade }}</span></td>
                             <td>{{ grade.grade_remark|default:"-" }}</td>
                             <td>{{ grade.remarks|default:"-" }}</td>
-                            {% if current_role != 'student' %}
+                            {% if current_role == 'admin' or current_role == 'teacher' %}
                                 <td><a href="{% url 'academics:grade_delete' grade.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">Delete</a></td>
                             {% endif %}
                         </tr>
                     {% empty %}
-                        <tr><td colspan="{% if current_role == 'student' %}10{% else %}12{% endif %}" class="text-center text-muted py-5">No grade records available.</td></tr>
+                        <tr><td colspan="{% if current_role == 'student' %}10{% elif current_role == 'admin' or current_role == 'teacher' %}12{% else %}11{% endif %}" class="text-center text-muted py-5">No grade records available.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

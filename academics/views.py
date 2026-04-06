@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -16,7 +16,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
 from accounts.models import UserProfile
-from accounts.permissions import get_user_role, role_required
+from accounts.permissions import get_user_role, parent_can_access_student, role_required
 from students.models import Student
 
 from .forms import (
@@ -24,6 +24,8 @@ from .forms import (
     AttendanceSelectionForm,
     ClassNoteForm,
     ExaminationTypeForm,
+    FeePaymentForm,
+    FeeStructureForm,
     GradeUploadForm,
     GradingSystemForm,
     SchoolClassForm,
@@ -38,6 +40,8 @@ from .models import (
     AttendanceRegister,
     ClassNote,
     ExaminationType,
+    FeePayment,
+    FeeStructure,
     Grade,
     GradingSystem,
     SchoolClass,
@@ -45,6 +49,8 @@ from .models import (
     SubjectGradeLevel,
     TeachingAssignment,
     Term,
+    calculate_student_fee_summary,
+    get_current_term,
 )
 from .pdf_utils import build_simple_text_pdf
 
@@ -107,6 +113,39 @@ def save_model_form(request, form, success_message, redirect_name):
         messages.success(request, success_message)
         return redirect(redirect_name)
     return None
+
+
+def user_can_access_student_finance(user, student):
+    role = get_user_role(user)
+    if role == UserProfile.ROLE_ADMIN:
+        return True
+    if role == UserProfile.ROLE_STUDENT:
+        return getattr(user, "student_profile", None) == student
+    if role == UserProfile.ROLE_PARENT:
+        return parent_can_access_student(user, student)
+    return False
+
+
+def build_fee_receipt_lines(payment):
+    summary = calculate_student_fee_summary(payment.student, payment.term)
+    student = payment.student
+    recorded_by = payment.recorded_by.get_full_name() if payment.recorded_by else "System"
+    return [
+        f"Receipt Number: {payment.receipt_number}",
+        f"Payment Date: {payment.payment_date}",
+        f"Student: {student.full_name}",
+        f"Admission Number: {student.admission_number}",
+        f"Class: {student.current_class or 'Not Assigned'}",
+        f"Academic Term: {payment.term}",
+        f"Payment Method: {payment.get_payment_method_display()}",
+        f"Transaction Reference: {payment.transaction_reference or '-'}",
+        f"Amount Paid: ZMW {payment.amount_paid:.2f}",
+        f"Expected Fee: ZMW {summary['expected_amount']:.2f}",
+        f"Total Paid To Date: ZMW {summary['amount_paid']:.2f}",
+        f"Balance After Payment: ZMW {summary['balance']:.2f}",
+        f"Recorded By: {recorded_by}",
+        f"Notes: {payment.notes or '-'}",
+    ]
 
 
 def build_attendance_rows(selected_class, selected_date):
@@ -673,6 +712,197 @@ def subject_grade_level_delete_view(request, pk):
 
 
 @login_required
+def fee_statement_view(request, student_pk):
+    student = get_object_or_404(Student.objects.select_related("current_class", "user"), pk=student_pk)
+    if not user_can_access_student_finance(request.user, student):
+        raise PermissionDenied
+
+    term_ids = set(
+        FeePayment.objects.filter(student=student).values_list("term_id", flat=True)
+    )
+    if student.grade_level:
+        term_ids.update(
+            Term.objects.filter(fee_structures__grade_level=student.grade_level).values_list("id", flat=True)
+        )
+    terms = Term.objects.select_related("academic_year").filter(pk__in=term_ids).order_by("-academic_year__year", "-term_number")
+    if not term_ids and get_current_term():
+        terms = [get_current_term()]
+
+    fee_summaries = [calculate_student_fee_summary(student, term) for term in terms]
+    payments = FeePayment.objects.select_related("term", "term__academic_year", "recorded_by").filter(student=student)
+    return render(
+        request,
+        "academics/fee_statement.html",
+        {
+            "student": student,
+            "fee_summaries": fee_summaries,
+            "payments": payments,
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_overview_view(request):
+    selected_term = request.GET.get("term", "").strip()
+    query = request.GET.get("q", "").strip()
+    fee_structures = FeeStructure.objects.select_related("term", "term__academic_year")
+    payments = FeePayment.objects.select_related("student", "term", "term__academic_year", "recorded_by")
+
+    if selected_term:
+        fee_structures = fee_structures.filter(term_id=selected_term)
+        payments = payments.filter(term_id=selected_term)
+    if query:
+        payments = payments.filter(
+            Q(student__first_name__icontains=query)
+            | Q(student__last_name__icontains=query)
+            | Q(student__admission_number__icontains=query)
+            | Q(receipt_number__icontains=query)
+            | Q(transaction_reference__icontains=query)
+        )
+
+    total_collected = payments.aggregate(total=Sum("amount_paid"))["total"] or Decimal("0.00")
+    return render(
+        request,
+        "academics/fee_overview.html",
+        {
+            "fee_structures": fee_structures,
+            "payments": payments[:20],
+            "query": query,
+            "selected_term": selected_term,
+            "terms": Term.objects.select_related("academic_year"),
+            "total_collected": total_collected,
+            "current_term": get_current_term(),
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_structure_create_view(request):
+    form = FeeStructureForm(request.POST or None)
+    redirect_response = save_model_form(request, form, "Fee structure created successfully.", "academics:fee_overview")
+    if redirect_response:
+        return redirect_response
+    return render(
+        request,
+        "academics/config_form.html",
+        {
+            "form": form,
+            "page_title": "Create Fee Structure",
+            "submit_label": "Save Structure",
+            "cancel_url": reverse("academics:fee_overview"),
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_structure_update_view(request, pk):
+    fee_structure = get_object_or_404(FeeStructure.objects.select_related("term", "term__academic_year"), pk=pk)
+    form = FeeStructureForm(request.POST or None, instance=fee_structure)
+    redirect_response = save_model_form(request, form, "Fee structure updated successfully.", "academics:fee_overview")
+    if redirect_response:
+        return redirect_response
+    return render(
+        request,
+        "academics/config_form.html",
+        {
+            "form": form,
+            "page_title": "Update Fee Structure",
+            "submit_label": "Update Structure",
+            "cancel_url": reverse("academics:fee_overview"),
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_structure_delete_view(request, pk):
+    fee_structure = get_object_or_404(FeeStructure.objects.select_related("term", "term__academic_year"), pk=pk)
+    if request.method == "POST":
+        fee_structure.delete()
+        messages.success(request, "Fee structure deleted successfully.")
+        return redirect("academics:fee_overview")
+    return render(
+        request,
+        "academics/config_confirm_delete.html",
+        {
+            "item_label": str(fee_structure),
+            "item_type": "fee structure",
+            "cancel_url": reverse("academics:fee_overview"),
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_payment_create_view(request):
+    initial = {}
+    if request.GET.get("student"):
+        initial["student"] = request.GET["student"]
+    if request.GET.get("term"):
+        initial["term"] = request.GET["term"]
+
+    form = FeePaymentForm(request.POST or None, initial=initial)
+    if request.method == "POST" and form.is_valid():
+        payment = form.save(commit=False)
+        payment.recorded_by = request.user
+        payment.save()
+        messages.success(request, f"Payment recorded successfully. Receipt {payment.receipt_number} is ready.")
+        return redirect("academics:fee_overview")
+    return render(
+        request,
+        "academics/config_form.html",
+        {
+            "form": form,
+            "page_title": "Record Fee Payment",
+            "submit_label": "Save Payment",
+            "cancel_url": reverse("academics:fee_overview"),
+        },
+    )
+
+
+@login_required
+@role_required(UserProfile.ROLE_ADMIN)
+def fee_payment_update_view(request, pk):
+    payment = get_object_or_404(FeePayment.objects.select_related("student", "term", "term__academic_year"), pk=pk)
+    form = FeePaymentForm(request.POST or None, instance=payment)
+    if request.method == "POST" and form.is_valid():
+        updated_payment = form.save(commit=False)
+        updated_payment.recorded_by = request.user
+        updated_payment.save()
+        messages.success(request, "Fee payment updated successfully.")
+        return redirect("academics:fee_overview")
+    return render(
+        request,
+        "academics/config_form.html",
+        {
+            "form": form,
+            "page_title": "Update Fee Payment",
+            "submit_label": "Update Payment",
+            "cancel_url": reverse("academics:fee_overview"),
+        },
+    )
+
+
+@login_required
+def fee_receipt_pdf_view(request, pk):
+    payment = get_object_or_404(FeePayment.objects.select_related("student", "term", "term__academic_year", "recorded_by"), pk=pk)
+    if not user_can_access_student_finance(request.user, payment.student):
+        raise PermissionDenied
+
+    file_name = f"{slugify(payment.student.full_name)}-{payment.receipt_number.lower()}-{payment.payment_date:%Y%m%d}.pdf"
+    pdf_content = build_simple_text_pdf(
+        f"{settings.SCHOOL_NAME} Fee Receipt",
+        build_fee_receipt_lines(payment),
+    )
+    response = HttpResponse(pdf_content, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+    return response
+
+
+@login_required
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_TEACHER)
 def assignment_list_view(request):
     assignments = TeachingAssignment.objects.select_related("teacher", "subject", "school_class")
@@ -1012,12 +1242,22 @@ def grade_list_view(request):
     role = get_user_role(request.user)
     exam_type = request.GET.get("exam_type", "").strip()
     term = request.GET.get("term", "").strip()
+    student_filter = request.GET.get("student", "").strip()
     grades = Grade.objects.select_related("student", "subject", "school_class", "teacher", "examination_type", "term_record")
+    student_choices = []
 
     if role == UserProfile.ROLE_STUDENT:
         grades = grades.filter(student=getattr(request.user, "student_profile", None))
     elif role == UserProfile.ROLE_TEACHER:
         grades = grades.filter(teacher=getattr(request.user, "teacher_profile", None))
+    elif role == UserProfile.ROLE_PARENT:
+        linked_students = getattr(request.user, "parent_profile", None)
+        if not linked_students:
+            raise PermissionDenied
+        student_choices = list(linked_students.students.order_by("first_name", "last_name"))
+        grades = grades.filter(student__in=student_choices)
+        if student_filter:
+            grades = grades.filter(student_id=student_filter)
     elif role != UserProfile.ROLE_ADMIN:
         raise PermissionDenied
 
@@ -1033,6 +1273,8 @@ def grade_list_view(request):
             "grades": grades,
             "term": term,
             "exam_type": exam_type,
+            "student_filter": student_filter,
+            "student_choices": student_choices,
             "exam_types": ExaminationType.objects.all(),
             "term_choices": Grade.TERM_CHOICES,
         },
@@ -1043,7 +1285,9 @@ def grade_list_view(request):
 def note_list_view(request):
     role = get_user_role(request.user)
     query = request.GET.get("q", "").strip()
+    student_filter = request.GET.get("student", "").strip()
     notes = ClassNote.objects.select_related("school_class", "subject", "uploaded_by", "uploaded_by__user")
+    student_choices = []
 
     if role == UserProfile.ROLE_ADMIN:
         pass
@@ -1060,6 +1304,20 @@ def note_list_view(request):
         student = getattr(request.user, "student_profile", None)
         current_class = getattr(student, "current_class", None)
         notes = notes.filter(school_class=current_class, is_published=True) if current_class else notes.none()
+    elif role == UserProfile.ROLE_PARENT:
+        parent = getattr(request.user, "parent_profile", None)
+        if not parent:
+            raise PermissionDenied
+        student_choices = list(parent.students.select_related("current_class").order_by("first_name", "last_name"))
+        if student_filter:
+            selected_student = next((student for student in student_choices if str(student.pk) == student_filter), None)
+            current_class = getattr(selected_student, "current_class", None)
+            notes = notes.filter(school_class=current_class, is_published=True) if current_class else notes.none()
+        else:
+            notes = notes.filter(
+                school_class__in=[student.current_class for student in student_choices if student.current_class_id],
+                is_published=True,
+            )
     else:
         raise PermissionDenied
 
@@ -1078,6 +1336,8 @@ def note_list_view(request):
         {
             "notes": notes,
             "query": query,
+            "student_filter": student_filter,
+            "student_choices": student_choices,
             "can_manage_notes": role in {UserProfile.ROLE_ADMIN, UserProfile.ROLE_TEACHER},
         },
     )

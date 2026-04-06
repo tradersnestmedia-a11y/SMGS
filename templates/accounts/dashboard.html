@@ -13,6 +13,8 @@
                     Monitor student growth, teacher capacity, and class activity from a single control center.
                 {% elif current_role == 'teacher' %}
                     Review your teaching assignments, attendance work, and uploaded grade records.
+                {% elif current_role == 'parent' %}
+                    Track each linked child, review fee balances, and stay current with classroom progress.
                 {% else %}
                     Check your attendance summary and latest subject results from your student dashboard.
                 {% endif %}
@@ -27,11 +29,13 @@
         <div class="row g-4 mb-4">
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Students</span><strong>{{ student_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Teachers</span><strong>{{ teacher_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Parents</span><strong>{{ parent_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Classes</span><strong>{{ class_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Subjects</span><strong>{{ subject_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Learning Notes</span><strong>{{ note_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Attendance Records</span><strong>{{ attendance_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Grade Records</span><strong>{{ grade_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Fees Collected</span><strong>ZMW {{ fee_payment_total|floatformat:2 }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Pending Students</span><strong>{{ pending_student_registrations }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Pending Staff</span><strong>{{ pending_staff_registrations }}</strong></div></div>
         </div>
@@ -95,6 +99,33 @@
                                     </tr>
                                 {% empty %}
                                     <tr><td colspan="4" class="text-center text-muted py-4">No attendance records yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Recent Fee Payments</h4>
+                        <a href="{% url 'academics:fee_overview' %}" class="btn btn-brand">Open Fees</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Receipt</th><th>Student</th><th>Term</th><th>Amount</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_fee_payments %}
+                                    <tr>
+                                        <td>{{ payment.receipt_number }}</td>
+                                        <td>{{ payment.student.full_name }}</td>
+                                        <td>{{ payment.term }}</td>
+                                        <td>ZMW {{ payment.amount_paid|floatformat:2 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No fee payments recorded yet.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -190,12 +221,80 @@
                 </div>
             </div>
         </div>
+    {% elif current_role == 'parent' %}
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Linked Students</span><strong>{{ linked_student_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Current Term</span><strong>{{ current_term|default:'Not Set' }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Payments Logged</span><strong>{{ payment_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Outstanding Balance</span><strong>ZMW {{ total_balance|floatformat:2 }}</strong></div></div>
+        </div>
+        <div class="row g-4">
+            <div class="col-xl-7">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">My Children</h4>
+                        <a href="{% url 'accounts:parent_children' %}" class="btn btn-brand">Open Parent Portal</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Student</th><th>Class</th><th>Balance</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for snapshot in student_snapshots %}
+                                    <tr>
+                                        <td>{{ snapshot.student.full_name }}</td>
+                                        <td>{{ snapshot.student.current_class|default:"Not Assigned" }}</td>
+                                        <td>
+                                            {% if snapshot.fee_summary %}
+                                                ZMW {{ snapshot.fee_summary.balance|floatformat:2 }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td><a href="{% url 'accounts:parent_student_overview' snapshot.student.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">View</a></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No students linked to this parent account yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="content-card h-100">
+                    <div class="section-title-wrap">
+                        <h4 class="section-title">Recent Payments</h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table">
+                            <thead>
+                                <tr><th>Receipt</th><th>Student</th><th>Amount</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                    <tr>
+                                        <td>{{ payment.receipt_number }}</td>
+                                        <td>{{ payment.student.full_name }}</td>
+                                        <td>ZMW {{ payment.amount_paid|floatformat:2 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3" class="text-center text-muted py-4">No fee payments recorded yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         <div class="row g-4 mb-4">
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>My Class</span><strong>{{ student.current_class|default:'Not Assigned' }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Result Records</span><strong>{{ grade_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Attendance Records</span><strong>{{ attendance_count }}</strong></div></div>
             <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Available Notes</span><strong>{{ note_count }}</strong></div></div>
+            <div class="col-md-6 col-xl-3"><div class="stat-card"><span>Current Fee Balance</span><strong>{% if current_term_fee_summary %}ZMW {{ current_term_fee_summary.balance|floatformat:2 }}{% else %}-{% endif %}</strong></div></div>
         </div>
         <div class="row g-4">
             <div class="col-xl-7">

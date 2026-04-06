@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -7,8 +8,20 @@ from django.urls import reverse
 
 from students.models import Student
 
-from accounts.models import UserProfile
-from .models import AcademicYear, AttendanceRegister, ClassNote, ExaminationType, Grade, GradingSystem, SchoolClass, Subject
+from accounts.models import ParentProfile, UserProfile
+from .models import (
+    AcademicYear,
+    AttendanceRegister,
+    ClassNote,
+    ExaminationType,
+    FeePayment,
+    FeeStructure,
+    Grade,
+    GradingSystem,
+    SchoolClass,
+    Subject,
+    Term,
+)
 
 
 class NoteAccessTests(TestCase):
@@ -157,3 +170,137 @@ class AcademicConfigurationTests(TestCase):
         self.assertEqual(grade.total_score, 65.0)
         self.assertEqual(grade.letter_grade, "B")
         self.assertEqual(grade.grade_remark, "Very Good")
+
+
+class ParentAcademicAccessTests(TestCase):
+    def setUp(self):
+        self.school_class = SchoolClass.objects.create(name="Grade 8")
+        self.subject = Subject.objects.create(code="SCI", name="Science")
+        self.exam_type = ExaminationType.objects.get(name="End of Term")
+
+        self.parent_user = User.objects.create_user(username="parentgrade", password="testpass123")
+        self.parent_user.profile.role = UserProfile.ROLE_PARENT
+        self.parent_user.profile.save()
+        self.parent = ParentProfile.objects.create(user=self.parent_user, phone_number="0977444444")
+
+        linked_user = User.objects.create_user(username="linked-student", password="testpass123")
+        other_user = User.objects.create_user(username="other-student", password="testpass123")
+        self.linked_student = Student.objects.create(
+            user=linked_user,
+            admission_number="STU-2026-5001",
+            first_name="Ruth",
+            last_name="Tembo",
+            gender="Female",
+            current_class=self.school_class,
+            joined_on=date.today(),
+        )
+        self.other_student = Student.objects.create(
+            user=other_user,
+            admission_number="STU-2026-5002",
+            first_name="Paul",
+            last_name="Phiri",
+            gender="Male",
+            current_class=self.school_class,
+            joined_on=date.today(),
+        )
+        self.parent.students.add(self.linked_student)
+
+        Grade.objects.create(
+            school_class=self.school_class,
+            student=self.linked_student,
+            subject=self.subject,
+            term="Term 1",
+            examination_type=self.exam_type,
+            ca_score=32,
+            exam_score=25,
+        )
+        Grade.objects.create(
+            school_class=self.school_class,
+            student=self.other_student,
+            subject=self.subject,
+            term="Term 1",
+            examination_type=self.exam_type,
+            ca_score=28,
+            exam_score=20,
+        )
+
+    def test_parent_only_sees_linked_student_grades(self):
+        self.client.force_login(self.parent_user)
+        response = self.client.get(reverse("academics:grade_list"))
+
+        self.assertContains(response, "Ruth Tembo")
+        self.assertNotContains(response, "Paul Phiri")
+        self.assertNotContains(response, "Delete")
+
+
+class FeeStatementTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(username="feeadmin", password="testpass123")
+        self.admin_user.profile.role = UserProfile.ROLE_ADMIN
+        self.admin_user.profile.save()
+
+        self.parent_user = User.objects.create_user(username="feeparent", password="testpass123")
+        self.parent_user.profile.role = UserProfile.ROLE_PARENT
+        self.parent_user.profile.save()
+        self.parent = ParentProfile.objects.create(user=self.parent_user, phone_number="0977555555")
+
+        self.school_class = SchoolClass.objects.create(name="Grade 7")
+        self.student_user = User.objects.create_user(username="feestudent", password="testpass123")
+        self.student_user.profile.role = UserProfile.ROLE_STUDENT
+        self.student_user.profile.save()
+        self.student = Student.objects.create(
+            user=self.student_user,
+            admission_number="STU-2026-6001",
+            first_name="Esther",
+            last_name="Soko",
+            gender="Female",
+            current_class=self.school_class,
+            joined_on=date.today(),
+        )
+        self.parent.students.add(self.student)
+
+        academic_year = AcademicYear.objects.create(
+            year=2026,
+            start_date=date(2026, 1, 10),
+            end_date=date(2026, 12, 5),
+            is_current=True,
+        )
+        self.term = Term.objects.create(
+            academic_year=academic_year,
+            term_number=1,
+            start_date=date(2026, 1, 10),
+            end_date=date(2026, 4, 10),
+        )
+        self.fee_structure = FeeStructure.objects.create(
+            term=self.term,
+            grade_level=7,
+            tuition_fee=Decimal("2500.00"),
+            development_fee=Decimal("300.00"),
+            examination_fee=Decimal("120.00"),
+            activity_fee=Decimal("80.00"),
+        )
+        self.payment = FeePayment.objects.create(
+            student=self.student,
+            term=self.term,
+            fee_structure=self.fee_structure,
+            amount_paid=Decimal("1000.00"),
+            payment_method=FeePayment.METHOD_MOBILE_MONEY,
+            transaction_reference="MM-12345",
+            recorded_by=self.admin_user,
+        )
+
+    def test_parent_can_open_fee_statement(self):
+        self.client.force_login(self.parent_user)
+        response = self.client.get(reverse("academics:fee_statement", kwargs={"student_pk": self.student.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Esther Soko")
+        self.assertContains(response, "ZMW 2000.00")
+
+    def test_receipt_pdf_downloads_for_parent(self):
+        self.client.force_login(self.parent_user)
+        response = self.client.get(reverse("academics:fee_receipt", kwargs={"pk": self.payment.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn(self.payment.receipt_number.lower(), response["Content-Disposition"])

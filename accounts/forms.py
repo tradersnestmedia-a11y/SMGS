@@ -1,7 +1,11 @@
 from django import forms
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 
+from students.models import Student
+
 from .form_utils import style_form_fields
+from .models import ParentProfile, UserProfile
 
 
 class LoginForm(AuthenticationForm):
@@ -154,4 +158,86 @@ class AccountProfileForm(forms.Form):
         elif photo:
             self.user.profile.photo = photo
         self.user.profile.save()
+
+        parent_profile = getattr(self.user, "parent_profile", None)
+        if parent_profile:
+            parent_profile.phone_number = self.cleaned_data["phone"]
+            parent_profile.save(update_fields=["phone_number", "updated_at"])
         return self.user
+
+
+class ParentProfileBaseForm(forms.ModelForm):
+    username = forms.CharField(max_length=150)
+    first_name = forms.CharField(max_length=150)
+    last_name = forms.CharField(max_length=150, required=False)
+    email = forms.EmailField()
+    photo = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": "image/*"}),
+        help_text="Upload a profile photo for the parent portal account.",
+    )
+
+    class Meta:
+        model = ParentProfile
+        fields = [
+            "phone_number",
+            "occupation",
+            "relationship",
+            "physical_address",
+            "district",
+            "province",
+            "students",
+        ]
+        widgets = {
+            "physical_address": forms.Textarea(attrs={"rows": 3}),
+            "students": forms.SelectMultiple(attrs={"size": 8}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["students"].queryset = Student.objects.select_related("current_class").order_by("first_name", "last_name")
+        style_form_fields(self)
+
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        user_qs = User.objects.filter(username=username)
+        if self.instance.pk:
+            user_qs = user_qs.exclude(pk=self.instance.user_id)
+        if user_qs.exists():
+            raise forms.ValidationError("This username is already in use.")
+        return username
+
+
+class ParentCreateForm(ParentProfileBaseForm):
+    def save(self, commit=True):  # pragma: no cover - service handles creation
+        raise NotImplementedError("ParentCreateForm is saved through create_parent_account().")
+
+
+class ParentUpdateForm(ParentProfileBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["username"].initial = self.instance.user.username
+            self.fields["first_name"].initial = self.instance.user.first_name
+            self.fields["last_name"].initial = self.instance.user.last_name
+            self.fields["email"].initial = self.instance.user.email
+            self.fields["photo"].initial = self.instance.user.profile.photo
+
+    def save(self, commit=True):
+        parent = super().save(commit=False)
+        user = parent.user
+        user.username = self.cleaned_data["username"]
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+            user.profile.role = UserProfile.ROLE_PARENT
+            user.profile.phone = self.cleaned_data["phone_number"]
+            photo = self.cleaned_data.get("photo")
+            if photo:
+                user.profile.photo = photo
+            user.profile.save()
+            parent.save()
+            self.save_m2m()
+        return parent

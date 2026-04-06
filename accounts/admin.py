@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import NotificationLog, StaffRegistration, StudentRegistration, UserProfile
+from .models import NotificationLog, ParentProfile, StaffRegistration, StudentRegistration, UserProfile
 
 
 @admin.register(UserProfile)
@@ -31,3 +31,11 @@ class NotificationLogAdmin(admin.ModelAdmin):
     list_display = ("channel", "status", "recipient", "created_at")
     list_filter = ("channel", "status", "created_at")
     search_fields = ("recipient", "subject", "response_message")
+
+
+@admin.register(ParentProfile)
+class ParentProfileAdmin(admin.ModelAdmin):
+    list_display = ("full_name", "phone_number", "relationship", "linked_student_count", "updated_at")
+    list_filter = ("relationship", "province")
+    search_fields = ("user__username", "user__first_name", "user__last_name", "user__email", "phone_number")
+    filter_horizontal = ("students",)

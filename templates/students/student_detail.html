@@ -14,6 +14,12 @@
                 {% if current_role == 'student' and request.user == student.user %}
                     <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill">Update Photo</a>
                 {% endif %}
+                {% if current_role == 'student' and request.user == student.user or current_role == 'admin' or current_role == 'parent' %}
+                    <a href="{% url 'academics:fee_statement' student.pk %}" class="btn btn-outline-success rounded-pill">Fee Statement</a>
+                {% endif %}
+                {% if current_role == 'parent' %}
+                    <a href="{% url 'accounts:parent_student_overview' student.pk %}" class="btn btn-outline-secondary rounded-pill">Portal View</a>
+                {% endif %}
                 {% if current_role == 'admin' %}
                     <a href="{% url 'students:edit' student.pk %}" class="btn btn-outline-secondary rounded-pill">Edit</a>
                     <a href="{% url 'students:delete' student.pk %}" class="btn btn-outline-danger rounded-pill">Delete</a>

@@ -41,11 +41,12 @@ This is a beginner-friendly Django school management system for **Sim Tech Acade
 pip install -r requirements.txt
 ```
 
-2. Optional but recommended: set the Gmail app password for real email delivery:
+2. Optional but recommended: configure SMTP credentials for real email delivery:
 
 Windows PowerShell:
 
 ```powershell
+$env:SIMTECH_EMAIL_HOST_USER="school@example.com"
 $env:SIMTECH_EMAIL_PASSWORD="your-gmail-app-password"
 ```
 
@@ -90,7 +91,7 @@ http://127.0.0.1:8000/
 ## Notes
 
 - SQLite is used by default, so no extra database setup is required.
-- Real email notifications are configured to use `tradersnestmedia@gmail.com`.
+- Real email notifications use the address supplied through `SIMTECH_EMAIL_HOST_USER`.
 - SMS notifications use a console/logging fallback by default until a live Zambian SMS gateway is configured.
 - Registration credentials are only generated and sent after admin approval.
 - You can also create your own admin account with:

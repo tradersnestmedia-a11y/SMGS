@@ -36,6 +36,15 @@ def is_student(user):
     return get_user_role(user) == UserProfile.ROLE_STUDENT
 
 
+def is_parent(user):
+    return get_user_role(user) == UserProfile.ROLE_PARENT
+
+
+def parent_can_access_student(user, student):
+    parent_profile = getattr(user, "parent_profile", None)
+    return bool(parent_profile and student and parent_profile.students.filter(pk=student.pk).exists())
+
+
 def role_required(*roles):
     def decorator(view_func):
         @wraps(view_func)

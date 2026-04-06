@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -41,3 +43,13 @@ class Student(models.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def grade_level(self):
+        if not self.current_class_id:
+            return None
+        match = re.search(r"(\d+)", self.current_class.name or "")
+        if not match:
+            return None
+        grade_value = int(match.group(1))
+        return grade_value if 1 <= grade_value <= 12 else None

@@ -13,6 +13,11 @@
         <a class="nav-link" href="{% url 'teachers:list' %}">
             <i class="bi bi-person-badge"></i> Teachers
         </a>
+        {% if current_role == 'admin' %}
+            <a class="nav-link" href="{% url 'accounts:parent_list' %}">
+                <i class="bi bi-people"></i> Parents
+            </a>
+        {% endif %}
         <a class="nav-link" href="{% url 'academics:class_list' %}">
             <i class="bi bi-building"></i> Classes
         </a>
@@ -25,6 +30,9 @@
             </a>
             <a class="nav-link" href="{% url 'academics:grading_setup' %}">
                 <i class="bi bi-sliders"></i> Grading Setup
+            </a>
+            <a class="nav-link" href="{% url 'academics:fee_overview' %}">
+                <i class="bi bi-cash-coin"></i> Fee Management
             </a>
         {% endif %}
         <a class="nav-link" href="{% url 'academics:assignment_list' %}">
@@ -50,11 +58,23 @@
         <a class="nav-link" href="{% url 'students:detail' request.user.student_profile.pk %}">
             <i class="bi bi-person-lines-fill"></i> My Profile
         </a>
+        <a class="nav-link" href="{% url 'academics:fee_statement' request.user.student_profile.pk %}">
+            <i class="bi bi-receipt"></i> My Fees
+        </a>
     {% endif %}
 
     {% if current_role == 'teacher' and request.user.teacher_profile %}
         <a class="nav-link" href="{% url 'teachers:detail' request.user.teacher_profile.pk %}">
             <i class="bi bi-person-lines-fill"></i> My Profile
+        </a>
+    {% endif %}
+
+    {% if current_role == 'parent' and request.user.parent_profile %}
+        <a class="nav-link" href="{% url 'accounts:parent_children' %}">
+            <i class="bi bi-people-fill"></i> My Children
+        </a>
+        <a class="nav-link" href="{% url 'accounts:parent_detail' request.user.parent_profile.pk %}">
+            <i class="bi bi-person-lines-fill"></i> Parent Profile
         </a>
     {% endif %}
 

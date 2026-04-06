@@ -1,11 +1,27 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.utils import timezone
 
 
 def grade_level_choices():
     return [(grade, f"Grade {grade}") for grade in range(1, 13)]
+
+
+def generate_receipt_number():
+    year = timezone.now().year
+    base = f"RCT-{year}-"
+    latest_receipt = (
+        FeePayment.objects.filter(receipt_number__startswith=base)
+        .order_by("-receipt_number")
+        .values_list("receipt_number", flat=True)
+        .first()
+    )
+    next_number = int(latest_receipt.split("-")[-1]) + 1 if latest_receipt else 1
+    return f"RCT-{year}-{next_number:05d}"
 
 
 class AcademicYear(models.Model):
@@ -133,6 +149,38 @@ class SubjectGradeLevel(models.Model):
 
     def __str__(self):
         return f"{self.subject.name} - Grade {self.grade_level}"
+
+
+class FeeStructure(models.Model):
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="fee_structures")
+    grade_level = models.PositiveSmallIntegerField(choices=grade_level_choices())
+    tuition_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    development_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    examination_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    activity_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    notes = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-term__academic_year__year", "term__term_number", "grade_level"]
+        constraints = [
+            models.UniqueConstraint(fields=["term", "grade_level"], name="unique_term_grade_fee_structure"),
+        ]
+
+    def __str__(self):
+        return f"{self.term} - Grade {self.grade_level}"
+
+    @property
+    def total_amount(self):
+        return sum(
+            (
+                self.tuition_fee,
+                self.development_fee,
+                self.examination_fee,
+                self.activity_fee,
+            ),
+            Decimal("0.00"),
+        )
 
 
 class TeachingAssignment(models.Model):
@@ -341,3 +389,103 @@ class ClassNote(models.Model):
     @property
     def attachment_name(self):
         return self.attachment.name.rsplit("/", 1)[-1] if self.attachment else ""
+
+
+class FeePayment(models.Model):
+    METHOD_CASH = "cash"
+    METHOD_MOBILE_MONEY = "mobile_money"
+    METHOD_BANK_TRANSFER = "bank_transfer"
+    METHOD_POS = "pos"
+
+    PAYMENT_METHOD_CHOICES = (
+        (METHOD_CASH, "Cash"),
+        (METHOD_MOBILE_MONEY, "Mobile Money"),
+        (METHOD_BANK_TRANSFER, "Bank Transfer"),
+        (METHOD_POS, "POS / Card"),
+    )
+
+    student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name="fee_payments")
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="fee_payments")
+    fee_structure = models.ForeignKey(
+        FeeStructure,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments",
+    )
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_date = models.DateField(default=timezone.localdate)
+    receipt_number = models.CharField(max_length=30, unique=True, editable=False)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default=METHOD_CASH)
+    transaction_reference = models.CharField(max_length=50, blank=True)
+    notes = models.TextField(blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recorded_fee_payments",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-payment_date", "-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.receipt_number} - {self.student.full_name}"
+
+    def save(self, *args, **kwargs):
+        if not self.receipt_number:
+            self.receipt_number = generate_receipt_number()
+        if not self.fee_structure_id:
+            self.fee_structure = get_fee_structure_for_student(self.student, self.term)
+        super().save(*args, **kwargs)
+
+    @property
+    def expected_amount(self):
+        return self.fee_structure.total_amount if self.fee_structure else Decimal("0.00")
+
+
+def get_current_term():
+    today = timezone.localdate()
+    current_term = (
+        Term.objects.select_related("academic_year")
+        .filter(academic_year__is_current=True, start_date__lte=today, end_date__gte=today)
+        .order_by("term_number")
+        .first()
+    )
+    if current_term:
+        return current_term
+    return (
+        Term.objects.select_related("academic_year")
+        .filter(academic_year__is_current=True)
+        .order_by("term_number")
+        .first()
+        or Term.objects.select_related("academic_year").order_by("-academic_year__year", "-term_number").first()
+    )
+
+
+def get_fee_structure_for_student(student, term):
+    if not student or not term:
+        return None
+    grade_level = getattr(student, "grade_level", None)
+    if not grade_level:
+        return None
+    return FeeStructure.objects.filter(term=term, grade_level=grade_level).first()
+
+
+def calculate_student_fee_summary(student, term):
+    fee_structure = get_fee_structure_for_student(student, term)
+    expected_amount = fee_structure.total_amount if fee_structure else Decimal("0.00")
+    amount_paid = (
+        FeePayment.objects.filter(student=student, term=term).aggregate(total_paid=Sum("amount_paid"))["total_paid"]
+        or Decimal("0.00")
+    )
+    return {
+        "term": term,
+        "fee_structure": fee_structure,
+        "expected_amount": expected_amount,
+        "amount_paid": amount_paid,
+        "balance": expected_amount - amount_paid,
+    }
