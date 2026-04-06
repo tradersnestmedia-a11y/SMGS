@@ -6,6 +6,7 @@ __pycache__/
 # Django local data
 db.sqlite3
 media/
+staticfiles/
 
 # Logs
 *.log
