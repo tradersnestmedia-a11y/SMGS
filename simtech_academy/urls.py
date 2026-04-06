@@ -11,5 +11,6 @@ urlpatterns = [
     path("academics/", include("academics.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Render uses Django directly behind Gunicorn, so local media files need an explicit route
+# even when DEBUG is off.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
